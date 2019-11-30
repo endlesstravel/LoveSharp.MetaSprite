@@ -363,7 +363,7 @@ public static class ASEParser {
                             }
 
                             if (nameInvalid) {
-                                Debug.LogWarning("Invalid name: " + originalName);
+                                Log.Warnning("Invalid name: " + originalName);
                             }
 
                             file.frameTags.Add(frameTag);
@@ -402,7 +402,7 @@ public static class ASEParser {
                 foreach (var cel in frame.cels.Values) {
                     if (cel.type != CelType.Linked) {
                         for(int i = 0; i < cel.colorBuffer.Length; ++i) {
-                            cel.colorBuffer[i].a *= cel.opacity * file.FindLayer(cel.layerIndex).opacity;
+                            cel.colorBuffer[i].Af *= cel.opacity * file.FindLayer(cel.layerIndex).opacity;
                         }
                     }
                 }
@@ -457,11 +457,11 @@ public static class ASEParser {
         for (int i = 0; i < arr.Length; ++i) {
             var offset = i << 2;
 
-            Color color = Color.white;
-            color.r = bytes[offset] / 255.0f;
-            color.g = bytes[offset + 1] / 255.0f;
-            color.b = bytes[offset + 2] / 255.0f;
-            color.a = bytes[offset + 3] / 255.0f;
+            Color color = Color.White;
+            color.Rf = bytes[offset] / 255.0f;
+            color.Gf = bytes[offset + 1] / 255.0f;
+            color.Bf = bytes[offset + 2] / 255.0f;
+            color.Af = bytes[offset + 3] / 255.0f;
 
             arr[i] = color;
         }
@@ -480,7 +480,7 @@ public static class ASEParser {
         }
     }
 
-    static byte[] ReadFully(Stream input) {
+    static byte[] ReadFully(System.IO.Stream input) {
         byte[] buffer = new byte[16*1024];
         using (MemoryStream ms = new MemoryStream()) {
             int read;
@@ -606,7 +606,7 @@ public static class MetaLayerParser {
         }
         
         if (_SkipSpaces(lexer)) {
-            Debug.LogWarning("Invalid content after layer definition finished: " + lexer.Token + "/" + lexer.TokenContents);
+            Log.Warnning("Invalid content after layer definition finished: " + lexer.Token + "/" + lexer.TokenContents);
         }
 
     }

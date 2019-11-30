@@ -38,7 +38,7 @@ public class MetaLayerTransform : MetaLayerProcessor {
                     int texX = cel.x + x;
                     int texY = -(cel.y + y) + file.height - 1;
                     var col = cel.GetPixelRaw(x, y);
-                    if (col.a > 0.1f) {
+                    if (col.Af > 0.1f) {
                         center += new Vector2(texX, texY);
                         pixelCount++;
                     }

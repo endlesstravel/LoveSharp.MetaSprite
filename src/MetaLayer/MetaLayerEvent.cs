@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Love;
-using Love;
 using TangentMode = UnityEditor.AnimationUtility.TangentMode;
 
 namespace MetaSprite {

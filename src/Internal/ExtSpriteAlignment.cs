@@ -18,10 +18,23 @@ public static class ExtSpriteAlignment {
             case SpriteAlignment.TopCenter:    return new Vector2(0.5f, 1f);  
             case SpriteAlignment.TopLeft:      return new Vector2(0.0f, 1f);  
             case SpriteAlignment.TopRight:     return new Vector2(1.0f, 1f);
-            default: return Vector2.zero;  
+            default: return Vector2.Zero;  
         }
     }
 
 }
+
+    public enum SpriteAlignment {
+        BottomCenter,
+        BottomLeft,
+        BottomRight,
+        Center,
+        Custom,
+        LeftCenter,
+        RightCenter,
+        TopCenter,
+        TopLeft,
+        TopRight,
+    }
 
 }

@@ -37,7 +37,7 @@ public class MetaLayerBoxCollider : MetaLayerProcessor {
                 for (int y = 0; y < cel.height; ++y) {
                     for (int x = 0; x < cel.width; ++x) {
                         var col = cel.GetPixelRaw(x, y);
-                        if (col.a > 0.1f) {
+                        if (col.Af > 0.1f) {
                             int texX = cel.x + x;
                             int texY = ctx.file.height - (cel.y + y) - 1;
 

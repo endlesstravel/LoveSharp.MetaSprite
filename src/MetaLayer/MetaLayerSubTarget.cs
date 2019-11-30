@@ -28,9 +28,7 @@ public class MetaLayerSubTarget : MetaLayerProcessor {
         List<Layer> layers; 
         context.subImageLayers.TryGetValue(subImageName, out layers);
 
-        var sprites = AtlasGenerator.GenerateAtlas(context, layers,
-            Path.GetDirectoryName(context.atlasPath) + "/" + 
-                context.fileNameNoExt + "_" + subImageName + ".png");
+        var sprites = AtlasGenerator.GenerateAtlas(context, layers);
         ASEImporter.GenerateClipImageLayer(context, targetChildObject, sprites);
     }
 
