@@ -104,11 +104,4 @@ namespace MetaSprite {
             }
         }
     }
-
-    public enum AsepriteWrapMode
-    {
-        Normal,
-        PingPongLoop,
-        Reverse,
-    }
 }

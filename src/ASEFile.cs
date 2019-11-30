@@ -6,6 +6,8 @@ using System;
 using System.Text;
 using System.IO.Compression;
 
+/// check out here  : https://github.com/aseprite/aseprite/blob/master/src/app/file/ase_format.cpp
+
 using MetaSprite.Internal;
 
 namespace MetaSprite {
@@ -172,9 +174,16 @@ internal interface UserDataAcceptor {
 
 public class FrameTag {
     public int from, to;
+    public AnimationDirection dir = AnimationDirection.Forward;
     public string name;
     public readonly HashSet<string> properties = new HashSet<string>();
 }
+public enum AnimationDirection : short
+{
+    Forward = 0,
+    Reverse = 1,
+    PingPong = 2,
+};
 
 public static class ASEParser {
 
@@ -335,7 +344,7 @@ public static class ASEParser {
 
                             frameTag.from = reader.ReadWord();
                             frameTag.to = reader.ReadWord();
-                            reader.ReadByte();
+                            frameTag.dir = (AnimationDirection)reader.ReadByte();
                             reader.ReadBytes(8);
                             reader.ReadBytes(3);
                             reader.ReadByte();

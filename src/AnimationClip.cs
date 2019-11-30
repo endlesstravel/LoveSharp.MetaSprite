@@ -5,7 +5,6 @@ namespace MetaSprite
 {
     public class AnimationClip
     {
-        public readonly AsepriteWrapMode wrapMode;
         public readonly bool loopTime;
         public readonly string Name;
 
@@ -30,25 +29,21 @@ namespace MetaSprite
             for (int i = tag.from; i <= tag.to; ++i) normalFrameList.Add(sprites[i]);
 
             // set frame
-            if (tag.properties.Contains("reverse"))  // ex: 4, 3, 2, 1
+            if (tag.dir == AnimationDirection.Forward) // ex: 1, 2, 3, 4
             {
-                wrapMode = AsepriteWrapMode.Reverse;
+                spriteFrameList = normalFrameList; // do noting ...
+            }
+            if (tag.dir == AnimationDirection.Reverse)  // ex: 4, 3, 2, 1
+            {
                 normalFrameList.Reverse();
                 spriteFrameList = normalFrameList;
 
             }
-            else if (tag.properties.Contains("ping-pong")) // ex: 1, 2, 3, 4, 3, 2
+            else if (tag.dir == AnimationDirection.PingPong) // ex: 1, 2, 3, 4, 3, 2
             {
-                wrapMode = AsepriteWrapMode.PingPongLoop;
                 spriteFrameList = new List<Sprite>(normalFrameList);
                 spriteFrameList.AddRange(normalFrameList.Skip(1).Take(normalFrameList.Count - 2).Reverse());
             }
-            else // ex: 1, 2, 3, 4
-            {
-                wrapMode = AsepriteWrapMode.Normal;
-                spriteFrameList = normalFrameList; // do noting ...
-            }
-
 
             elapsedTimeList = new List<float>(spriteFrameList.Count);
             elapsedStartTimeList = new List<float>(spriteFrameList.Count);
