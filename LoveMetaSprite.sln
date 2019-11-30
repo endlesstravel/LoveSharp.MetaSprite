@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.572
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoveMetaSprite", "LoveMetaSprite\LoveMetaSprite.csproj", "{55ED2714-7274-4E8D-B8AD-D7DF0F8CF798}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "Example\Example.csproj", "{BE16C99B-7882-487A-9500-FA9B327BC640}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{55ED2714-7274-4E8D-B8AD-D7DF0F8CF798}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55ED2714-7274-4E8D-B8AD-D7DF0F8CF798}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55ED2714-7274-4E8D-B8AD-D7DF0F8CF798}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE16C99B-7882-487A-9500-FA9B327BC640}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE16C99B-7882-487A-9500-FA9B327BC640}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE16C99B-7882-487A-9500-FA9B327BC640}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE16C99B-7882-487A-9500-FA9B327BC640}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

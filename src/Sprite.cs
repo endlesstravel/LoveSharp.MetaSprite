@@ -5,6 +5,8 @@ namespace MetaSprite
     public class Sprite
     {
         public string name;
+        public float duration;
+        public Frame frame;
         public Image image;
         public Quad quad;
         public SpriteAlignment alignment;

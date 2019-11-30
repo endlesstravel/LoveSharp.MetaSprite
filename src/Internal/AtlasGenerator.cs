@@ -22,9 +22,8 @@ namespace MetaSprite.Internal {
             public List<PackPos> positions;
         }
 
-        public static List<Sprite> GenerateAtlas(ImportContext ctx, List<Layer> layers) {
+        public static List<Sprite> GenerateAtlas(ImportContext ctx, List<Layer> layers, bool densePacked = true, int border = 1) {
             var file = ctx.file;
-            var settings = ctx.settings;
 
             var images = file.frames    
                 .Select(frame => {
@@ -69,7 +68,7 @@ namespace MetaSprite.Internal {
                         image.minx = image.maxx = image.miny = image.maxy = 0;
                     }
 
-                    if (!settings.densePacked) { // override image border for sparsely packed atlas
+                    if (!densePacked) { // override image border for sparsely packed atlas
                         image.minx = image.miny = 0;
                         image.maxx = file.width - 1;
                         image.maxy = file.height - 1;
@@ -80,7 +79,7 @@ namespace MetaSprite.Internal {
                 .ToList();
 
             var packList = images.Select(image => new PackData { width = image.finalWidth, height = image.finalHeight }).ToList();
-            var packResult = PackAtlas(packList, settings.border);
+            var packResult = PackAtlas(packList, border);
 
             if (packResult.imageSize > 2048) {
                 Log.Warnning("Generate atlas size is larger than 2048 !");
@@ -107,16 +106,19 @@ namespace MetaSprite.Internal {
             var textureImage = Graphics.NewImage(texture);
             // build image end
 
-            Vector2 oldPivotNorm = settings.PivotRelativePos;
+            Vector2 oldPivotNorm = Vector2.Zero;
 
-            var metaList = new List<Sprite>();
+            var metaList = new List<Sprite>(images.Count);
 
             for (int i = 0; i < images.Count; ++i) {
                 var pos = packResult.positions[i];
                 var image = images[i];
+                float duration = file.frames[i].duration;
 
                 var metadata = new Sprite();
+                metadata.frame = file.frames[i];
                 metadata.image = textureImage;
+                metadata.duration = duration * 0.001f;
                 metadata.name = ctx.fileNameNoExt + "_" + i;
                 metadata.alignment = SpriteAlignment.Custom;
                 metadata.rect = new RectangleF(pos.x, pos.y, image.finalWidth, image.finalHeight);

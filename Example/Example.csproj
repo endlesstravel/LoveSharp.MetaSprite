@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Love2dCS, Version=11.0.43.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Love2dCS.11.0.43\lib\netstandard1.2\Love2dCS.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -48,6 +51,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LoveMetaSprite\LoveMetaSprite.csproj">
+      <Project>{55ed2714-7274-4e8d-b8ad-d7df0f8cf798}</Project>
+      <Name>LoveMetaSprite</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
