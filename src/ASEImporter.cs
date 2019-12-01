@@ -44,7 +44,12 @@ namespace MetaSprite {
             public MetaLayerProcessor processor;
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="initTagName">null for random tag</param>
+        /// <returns></returns>
         public static SpriteAnimation Import(string path, string initTagName) {
 
             var context = new ImportContext {
@@ -89,6 +94,9 @@ namespace MetaSprite {
             {
                 dict[kv.Key.name] = kv.Value;
             }
+
+            if (initTagName == null)
+                initTagName = dict.Keys.FirstOrDefault();
 
             return new SpriteAnimation(dict, initTagName);
         }

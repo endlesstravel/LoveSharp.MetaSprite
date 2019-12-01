@@ -95,8 +95,11 @@ namespace MetaSprite.Internal {
                 {
                     for (int x = image.minx; x <= image.maxx; ++x)
                     {
+                        //int texX = (x - image.minx) + pos.x;
+                        //int texY = -(y - image.miny) + pos.y + image.finalHeight - 1;
+                        //textureData[texX + texY * packResult.imageSize] = image.GetPixel(x, y);
                         int texX = (x - image.minx) + pos.x;
-                        int texY = -(y - image.miny) + pos.y + image.finalHeight - 1;
+                        int texY = (y - image.miny) + pos.y;
                         textureData[texX + texY * packResult.imageSize] = image.GetPixel(x, y);
                     }
                 }
@@ -196,7 +199,7 @@ namespace MetaSprite.Internal {
 
             public int finalHeight { get { return maxy - miny + 1; } }
 
-            readonly int width, height;
+            public readonly int width, height;
 
             readonly Color[] data;
 
