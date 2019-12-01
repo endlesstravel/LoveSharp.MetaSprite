@@ -98,7 +98,10 @@ namespace MetaSprite {
             if (initTagName == null)
                 initTagName = dict.Keys.FirstOrDefault();
 
-            return new SpriteAnimation(dict, initTagName);
+
+            
+
+            return new SpriteAnimation(dict, context.file.width, context.file.height, initTagName);
         }
 
         static void GenerateAnimClips(ImportContext ctx)

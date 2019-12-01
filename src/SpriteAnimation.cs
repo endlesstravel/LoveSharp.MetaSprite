@@ -15,16 +15,21 @@ namespace MetaSprite
 
         Dictionary<string, AnimationClip> renderableFrameTagDict;
 
+        public readonly int Width, Height;
+
         /// <summary>
         /// all tag name
         /// </summary>
         public IEnumerable<string> TagNameIter => renderableFrameTagDict.Keys;
 
-        public SpriteAnimation(Dictionary<string, AnimationClip> dict, string initialTag)
+        public SpriteAnimation(Dictionary<string, AnimationClip> dict, int widht, int height, string initialTag)
         {
             this.renderableFrameTagDict = dict ?? throw new System.ArgumentNullException(nameof(dict));
             ReallySetTag(initialTag);
             IsPaused = false;
+
+            Width = widht;
+            Height = height;
         }
 
 
@@ -100,9 +105,10 @@ namespace MetaSprite
             {
                 Graphics.Draw(currentFrame.quad, currentFrame.image, x, y, rot, sx, sy, 
                     (currentFrame.pivot.X) * currentFrame.rect.Width + ox,
-                    (1 - currentFrame.pivot.Y) * currentFrame.rect.Height + oy);
+                    (1 - currentFrame.pivot.Y) * currentFrame.rect.Height - Height + oy);
             }
         }
+
 
         public int CurrentFrameIndex
         {

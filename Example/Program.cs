@@ -51,7 +51,16 @@ namespace Example
         {
             if (ani != null)
             {
-                ani.Draw(Graphics.GetWidth() / 2, Graphics.GetHeight() / 2);
+                var pos = new Vector2(Graphics.GetWidth() / 2, Graphics.GetHeight() / 2);
+                Graphics.SetColor(Color.White);
+                ani.Draw(pos.X, pos.Y);
+
+                Graphics.SetColor(Color.Green);
+                int r = 10;
+                Graphics.Circle(DrawMode.Line, pos, r);
+                Graphics.Line(pos.X - r, pos.Y, pos.X + r, pos.Y);
+                Graphics.Line(pos.X, pos.Y - r, pos.X , pos.Y+ r);
+
                 int h = 0;
                 float fh = Graphics.GetFont().GetHeight() + 2;
                 foreach (var tname in ani.TagNameIter)
