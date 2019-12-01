@@ -12,6 +12,7 @@ namespace MetaSprite
         public SpriteAlignment alignment;
         public RectangleF rect;
         public Vector2 pivot;
+        public Vector2 spritedPivot;
     }
 
     public static class FunctionBoost

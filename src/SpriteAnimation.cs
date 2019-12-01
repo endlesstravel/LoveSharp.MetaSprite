@@ -104,8 +104,8 @@ namespace MetaSprite
             if (currentFrame != null)
             {
                 Graphics.Draw(currentFrame.quad, currentFrame.image, x, y, rot, sx, sy, 
-                    (currentFrame.pivot.X) * currentFrame.rect.Width + ox,
-                    (1 - currentFrame.pivot.Y) * currentFrame.rect.Height - Height + oy);
+                    (currentFrame.pivot.X) * currentFrame.rect.Width + (Width * currentFrame.spritedPivot.X) + ox,
+                    (1 - currentFrame.pivot.Y) * currentFrame.rect.Height - Height + (Height * currentFrame.spritedPivot.Y) + oy);
             }
         }
 
