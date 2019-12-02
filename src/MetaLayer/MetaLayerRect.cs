@@ -1,19 +1,15 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Love;
 
-namespace MetaSprite
-{
+namespace MetaSprite {
 
-    public class MetaLayerTransform : MetaLayerProcessor
-    {
-        public override string actionName
-        {
-            get { return "trans"; }
+    public class MetaLayerRect : MetaLayerProcessor {
+        public override string actionName {
+            get { return "rect"; }
         }
 
-        struct TransRectFrame
-        {
+        struct RectFrame {
             public int frame;
             public RectangleF rect;
             public string name;
@@ -34,37 +30,33 @@ namespace MetaSprite
             return RectangleF.Empty;
         }
 
-        public override void Process(ImportContext ctx, Layer layer)
-        {
-            var pivots = new List<TransRectFrame>();
+        public override void Process(ImportContext ctx, Layer layer) {
+            var pivots = new List<RectFrame>();
 
             var file = ctx.file;
 
             //var importer = AssetImporter.GetAtPath(ctx.atlasPath) as TextureImporter;
             var spriteSheet = ctx.generatedSprites;
 
-            for (int i = 0; i < file.frames.Count; ++i)
-            {
+            for (int i = 0; i < file.frames.Count; ++i) {
                 Cel cel;
                 file.frames[i].cels.TryGetValue(layer.index, out cel);
 
-                if (cel != null)
-                {
-
-                    pivots.Add(new TransRectFrame { frame = i, name = layer.GetParamString(0), rect = RectOfCel(cel) });
+                if (cel != null) {
+                    
+                    pivots.Add(new RectFrame { frame = i, name = layer.GetParamString(0), rect = RectOfCel(cel) });
                 }
             }
 
             if (pivots.Count == 0)
                 return;
 
-            for (int i = 0; i < spriteSheet.Count; ++i)
-            {
+            for (int i = 0; i < spriteSheet.Count; ++i) {
                 int j = 1;
                 while (j < pivots.Count && pivots[j].frame <= i) ++j; // j = index after found item
-
+            
                 var data = pivots[j - 1];
-                spriteSheet[i].transDict[data.name] = data.rect.Center;
+                spriteSheet[i].rectDict[data.name] = data.rect;
             }
         }
     }

@@ -47,6 +47,13 @@ namespace Example
             Reset("examples/spinner.aseprite");
         }
 
+        public static void DrawCrossCircle(Vector2 pos, int r)
+        {
+            Graphics.Circle(DrawMode.Line, pos, r); // pivot
+            Graphics.Line(pos.X - r, pos.Y, pos.X + r, pos.Y);
+            Graphics.Line(pos.X, pos.Y - r, pos.X, pos.Y + r);
+        }
+
         public override void Draw()
         {
             if (ani != null)
@@ -57,10 +64,21 @@ namespace Example
 
                 Graphics.SetColor(Color.Green);
                 int r = 10;
-                Graphics.Circle(DrawMode.Line, pos, r);
-                Graphics.Line(pos.X - r, pos.Y, pos.X + r, pos.Y);
-                Graphics.Line(pos.X, pos.Y - r, pos.X , pos.Y+ r);
+                DrawCrossCircle(pos, r);
 
+                foreach (var kv in ani.CurrentFrameRectDict) // rect
+                {
+                    Graphics.Rectangle(DrawMode.Line, ani.CurrentFrameRectToPos(pos, kv.Value));
+                }
+
+                foreach (var kv in ani.CurrentFrameTransDict) // trans
+                {
+                    var pps = ani.CurrentFrameTransToPos(pos, kv.Value);
+                    DrawCrossCircle(pps, 5);
+                    Graphics.Print(kv.Key, pps.X, pps.Y);
+                }
+
+                Graphics.SetColor(Color.White);
                 int h = 0;
                 float fh = Graphics.GetFont().GetHeight() + 2;
                 foreach (var tname in ani.TagNameIter)

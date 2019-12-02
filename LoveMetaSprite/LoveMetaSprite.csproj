@@ -74,6 +74,9 @@
     <Compile Include="..\src\MetaLayer\MetaLayerPivot.cs">
       <Link>MetaLayer\MetaLayerPivot.cs</Link>
     </Compile>
+    <Compile Include="..\src\MetaLayer\MetaLayerRect.cs">
+      <Link>MetaLayer\MetaLayerRect.cs</Link>
+    </Compile>
     <Compile Include="..\src\MetaLayer\MetaLayerSub.cs">
       <Link>MetaLayer\MetaLayerSub.cs</Link>
     </Compile>

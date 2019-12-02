@@ -1,5 +1,5 @@
 using Love;
-
+using System.Collections.Generic;
 namespace MetaSprite
 {
     public class Sprite
@@ -13,6 +13,9 @@ namespace MetaSprite
         public RectangleF rect;
         public Vector2 pivot;
         public Vector2 spritedPivot;
+
+        readonly public Dictionary<string, RectangleF> rectDict = new Dictionary<string, RectangleF>();
+        readonly public Dictionary<string, Vector2> transDict = new Dictionary<string, Vector2>();
     }
 
     public static class FunctionBoost

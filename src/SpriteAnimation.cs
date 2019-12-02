@@ -17,6 +17,22 @@ namespace MetaSprite
 
         public readonly int Width, Height;
 
+        public Dictionary<string, RectangleF> CurrentFrameRectDict => new Dictionary<string, RectangleF>(currentFrame?.rectDict);
+        public Dictionary<string, Vector2> CurrentFrameTransDict => new Dictionary<string, Vector2>(currentFrame?.transDict);
+        public Vector2 CurrentFrameTransToPos(Vector2 pos, Vector2 trans)
+        {
+            var pof = CurrentFramePiovtOffset;
+            return new Vector2(pos.X + trans.X - (pof.X * Width), pos.Y + trans.Y - (pof.Y * Height));
+        }
+        public RectangleF CurrentFrameRectToPos(Vector2 pos, RectangleF rect)
+        {
+            var pof = CurrentFramePiovtOffset;
+            return new RectangleF(
+                        pos.X + rect.X - (pof.X * Width), pos.Y + rect.Y - (pof.Y * Height),
+                        rect.Width, rect.Height);
+        }
+        public Vector2 CurrentFramePiovtOffset => currentFrame.spritedPivot;
+
         /// <summary>
         /// all tag name
         /// </summary>
