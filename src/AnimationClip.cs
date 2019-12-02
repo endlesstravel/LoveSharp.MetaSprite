@@ -30,6 +30,11 @@ namespace MetaSprite
             var normalFrameList = new List<Sprite>((tag.to - tag.from + 1) * 2);
             for (int i = tag.from; i <= tag.to; ++i) normalFrameList.Add(sprites[i]);
 
+            if (reverseFrameList)
+            {
+                normalFrameList.Reverse();
+            }
+
             // set frame
             if (tag.dir == AnimationDirection.Forward) // ex: 1, 2, 3, 4
             {
@@ -45,11 +50,6 @@ namespace MetaSprite
             {
                 spriteFrameList = new List<Sprite>(normalFrameList);
                 spriteFrameList.AddRange(normalFrameList.Skip(1).Take(normalFrameList.Count - 2).Reverse());
-            }
-
-            if (reverseFrameList)
-            {
-                spriteFrameList.Reverse();
             }
 
             elapsedTimeList = new List<float>(spriteFrameList.Count);
