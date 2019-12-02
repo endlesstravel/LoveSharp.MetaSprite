@@ -163,20 +163,62 @@ namespace MetaSprite
             if (currentTag == null)
                 throw new Exception("not set tag yet");
 
-
-            var lastFrame = CurrentFrameIndex;
-            var list = ElapsedTimeMoveFrame(CurrentFrameIndex, TimeElapsed, dt);
-            CurrentFrameIndex = list?.Last?.Value ?? CurrentFrameIndex;
-
-            TimeElapsed += dt;
-            if (isNeedStartToCallFrameAction)
+            if (currentTag.loopTime)
             {
-                FrameBegin?.Invoke(currentTag.Name, 0);
-                isNeedStartToCallFrameAction = false;
+                var lastFrame = CurrentFrameIndex;
+                var list = ElapsedTimeMoveFrame(CurrentFrameIndex, TimeElapsed, dt);
+
+                if (isNeedStartToCallFrameAction)
+                {
+                    FrameBegin?.Invoke(currentTag.Name, 0);
+                    isNeedStartToCallFrameAction = false;
+                }
+                foreach (var itemIndex in list)
+                {
+                    FrameBegin?.Invoke(currentTag.Name, itemIndex);
+                }
+
+                // add the remain ....
+                CurrentFrameIndex = list?.Last?.Value ?? CurrentFrameIndex;
+                TimeElapsed += dt;
             }
-            foreach (var itemIndex in list)
+            else
             {
-                FrameBegin?.Invoke(currentTag.Name, itemIndex);
+                var lastFrameIndex = currentTag.Frames.Count - 1;
+                if (CurrentFrameIndex == lastFrameIndex)
+                {
+                    // do nothing ...
+
+                }
+                else
+                {
+                    var curFrame = CurrentFrameIndex;
+                    var list = ElapsedTimeMoveFrame(CurrentFrameIndex, TimeElapsed, dt);
+
+                    // invoke ....
+                    if (isNeedStartToCallFrameAction)
+                    {
+                        FrameBegin?.Invoke(currentTag.Name, 0);
+                        isNeedStartToCallFrameAction = false;
+                    }
+                    foreach (var itemIndex in list)
+                    {
+                        if (itemIndex <= CurrentFrameIndex) // looped check
+                            break;
+
+                        curFrame = itemIndex;
+                        FrameBegin?.Invoke(currentTag.Name, itemIndex);
+                        if (itemIndex == lastFrameIndex) // end of frame
+                        {
+                            break;
+                        }
+                    }
+
+                    // add the remain ....
+                    CurrentFrameIndex = curFrame;
+                    TimeElapsed += dt;
+                }
+
             }
         }
 
