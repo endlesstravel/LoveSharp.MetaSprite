@@ -5,6 +5,7 @@ namespace MetaSprite
 {
     public class AnimationClip
     {
+        public readonly bool IsReversed;
         public readonly bool loopTime;
         public readonly string Name;
 
@@ -18,9 +19,10 @@ namespace MetaSprite
         float duration;
 
         #region frame info
-        public AnimationClip(FrameTag tag, List<Sprite> sprites, List<Frame> frames)
+        public AnimationClip(FrameTag tag, List<Sprite> sprites, List<Frame> frames, bool reverseFrameList)
         {
             Name = tag.name;
+            IsReversed = reverseFrameList;
 
             // Set loop property
             loopTime = tag.properties.Contains("loop");
@@ -43,6 +45,11 @@ namespace MetaSprite
             {
                 spriteFrameList = new List<Sprite>(normalFrameList);
                 spriteFrameList.AddRange(normalFrameList.Skip(1).Take(normalFrameList.Count - 2).Reverse());
+            }
+
+            if (reverseFrameList)
+            {
+                spriteFrameList.Reverse();
             }
 
             elapsedTimeList = new List<float>(spriteFrameList.Count);

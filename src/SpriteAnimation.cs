@@ -14,6 +14,7 @@ namespace MetaSprite
         public bool IsPaused { private set; get; }
 
         Dictionary<string, AnimationClip> renderableFrameTagDict;
+        Dictionary<string, AnimationClip> reversedRenderableFrameTagDict;
 
         public readonly int Width, Height;
 
@@ -38,10 +39,11 @@ namespace MetaSprite
         /// </summary>
         public IEnumerable<string> TagNameIter => renderableFrameTagDict.Keys;
 
-        public SpriteAnimation(Dictionary<string, AnimationClip> dict, int widht, int height, string initialTag)
+        public SpriteAnimation(Dictionary<string, AnimationClip> dict, Dictionary<string, AnimationClip> reversedAniDict, int widht, int height, string initialTag)
         {
             this.renderableFrameTagDict = dict ?? throw new System.ArgumentNullException(nameof(dict));
-            ReallySetTag(initialTag);
+            this.reversedRenderableFrameTagDict = reversedAniDict ?? throw new System.ArgumentNullException(nameof(dict));
+            ReallySetTag(initialTag, false);
             IsPaused = false;
 
             Width = widht;
@@ -53,11 +55,12 @@ namespace MetaSprite
         /// <summary>
         /// same as SetTagimmediately, but this function will wait unit Update called to adjust to change.
         /// </summary>
-        public void SetTag(string tagName)
+        public void SetTag(string tagName, bool reverseMode = false)
         {
             if (tagName == null) throw new Exception("No animation tag specified!");
             if (renderableFrameTagDict.ContainsKey(tagName) == false) throw new Exception($"Tag {tagName} not found in frametags!");
             wantToChangedTag = tagName;
+            wantToChangedTagReverseMode = reverseMode;
         }
 
         /// <summary>
@@ -68,20 +71,22 @@ namespace MetaSprite
         public void SetTagimmediately(string tagName)
         {
             wantToChangedTag = null;
-            ReallySetTag(tagName);
+            ReallySetTag(tagName, wantToChangedTagReverseMode);
         }
 
         string wantToChangedTag = null;
+        bool wantToChangedTagReverseMode = false;
 
-        void ReallySetTag(string tagName)
+        void ReallySetTag(string tagName, bool reverseMode)
         {
+            var rdict = reverseMode ? reversedRenderableFrameTagDict : renderableFrameTagDict;
             if (tagName == null) throw new Exception("No animation tag specified!");
-            if (renderableFrameTagDict.ContainsKey(tagName) == false) throw new Exception($"Tag {tagName} not found in frametags!");
+            if (rdict.ContainsKey(tagName) == false) throw new Exception($"Tag {tagName} not found in frametags!");
 
-            if (currentTag?.Name == tagName) // same ... then return;
+            if (currentTag!= null && currentTag.Name == tagName && currentTag.IsReversed == reverseMode) // same ... then return;
                 return;
 
-            currentTag = renderableFrameTagDict[tagName];
+            currentTag = rdict[tagName];
 
             if (currentTag.Frames.Count <= 0)
             {
@@ -147,8 +152,9 @@ namespace MetaSprite
         {
             if (wantToChangedTag != null)
             {
-                ReallySetTag(wantToChangedTag);
+                ReallySetTag(wantToChangedTag, wantToChangedTagReverseMode);
                 wantToChangedTag = null;
+                wantToChangedTagReverseMode = false;
             }
 
             if (IsPaused)

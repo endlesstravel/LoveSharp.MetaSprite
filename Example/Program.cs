@@ -16,7 +16,7 @@ namespace Example
         public void ToNextTag()
         {
             tagNameIndex = ++tagNameIndex % tagNameList.Count;
-            ani.SetTag(tagNameList[tagNameIndex]);
+            ani.SetTag(tagNameList[tagNameIndex], true);
         }
 
         public void Reset(string path)
@@ -56,6 +56,7 @@ namespace Example
 
         public override void Draw()
         {
+            Graphics.Print(" fps: " + Love.FPSCounter.GetFPS(), 0, Graphics.GetHeight() - 20);
             if (ani != null)
             {
                 var pos = new Vector2(Graphics.GetWidth() / 2, Graphics.GetHeight() / 2);

@@ -23,6 +23,7 @@ namespace MetaSprite {
         public List<Vector2> spriteCropPositions = new List<Vector2>();
 
         public Dictionary<FrameTag, AnimationClip> generatedClips = new Dictionary<FrameTag, AnimationClip>();
+        public Dictionary<FrameTag, AnimationClip> generatedReversedClips = new Dictionary<FrameTag, AnimationClip>();
 
         public Dictionary<string, List<Layer>> subImageLayers = new Dictionary<string, List<Layer>>();
 
@@ -126,14 +127,16 @@ namespace MetaSprite {
             {
                 dict[kv.Key.name] = kv.Value;
             }
+            Dictionary<string, AnimationClip> revsrse_dict = new Dictionary<string, AnimationClip>();
+            foreach (var kv in context.generatedReversedClips)
+            {
+                revsrse_dict[kv.Key.name] = kv.Value;
+            }
 
             if (initTagName == null)
                 initTagName = dict.Keys.FirstOrDefault();
 
-
-            
-
-            return new SpriteAnimation(dict, context.file.width, context.file.height, initTagName);
+            return new SpriteAnimation(dict, revsrse_dict, context.file.width, context.file.height, initTagName);
         }
 
         static void GenerateAnimClips(ImportContext ctx)
@@ -142,8 +145,8 @@ namespace MetaSprite {
             foreach (var tag in ctx.file.frameTags) {
 
                 // Create clip
-                AnimationClip clip = new AnimationClip(tag, ctx.generatedSprites, ctx.file.frames);
-                ctx.generatedClips.Add(tag, clip);
+                ctx.generatedClips.Add(tag, new AnimationClip(tag, ctx.generatedSprites, ctx.file.frames, false));
+                ctx.generatedReversedClips.Add(tag, new AnimationClip(tag, ctx.generatedSprites, ctx.file.frames, true));
             }
         }
     }
