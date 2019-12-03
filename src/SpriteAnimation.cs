@@ -47,6 +47,7 @@ namespace MetaSprite
 
         #endregion
 
+        public bool IsReverseMode { get; private set; }
 
         AnimationClip currentTag = null;
         Sprite currentFrame => FrameCount > 0 ? currentTag?.Frames[CurrentFrameIndex] : null;
@@ -164,6 +165,7 @@ namespace MetaSprite
                 return;
 
             currentTag = rdict[tagName];
+            IsReverseMode = reverseMode;
 
             if (currentTag.Frames.Count <= 0)
             {

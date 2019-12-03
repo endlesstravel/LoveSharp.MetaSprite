@@ -32,6 +32,12 @@ namespace MetaSprite {
     public static class ASEImporter {
 
         static readonly Dictionary<string, MetaLayerProcessor> layerProcessors = new Dictionary<string, MetaLayerProcessor>();
+        static ASEImporter()
+        {
+            RefresProcessor();
+        }
+
+
         public static void RefresProcessor()
         {
             layerProcessors.Clear();
@@ -97,10 +103,6 @@ namespace MetaSprite {
 
             // generate animation clips
             GenerateAnimClips(context);
-
-
-            // build process
-            RefresProcessor();
 
             // process other ...
             context.file.layers
