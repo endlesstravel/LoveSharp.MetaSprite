@@ -272,7 +272,7 @@ public static class ASEParser {
                         layer.layerName = reader.ReadUTF8();
 
                         var parentEnable = layer.parentIndex == -1 || enabledLayerIdxs.Contains(layer.parentIndex);
-                        var thisEnable = layer.visible && !layer.layerName.StartsWith("//");
+                        var thisEnable = (layer.visible && !layer.layerName.StartsWith("//")) || layer.layerName.StartsWith("@");
                         if (parentEnable && thisEnable) {
                             if (layerType == 0) {
                                 layer.index = readLayerIndex;

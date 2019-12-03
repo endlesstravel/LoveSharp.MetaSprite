@@ -31,48 +31,49 @@ namespace MetaSprite {
 
     public static class ASEImporter {
 
-        static readonly Dictionary<string, MetaLayerProcessor> layerProcessors = new Dictionary<string, MetaLayerProcessor>();
-        static ASEImporter()
+        static readonly Dictionary<string, MetaLayerProcessor> layerProcessors = new MetaLayerProcessor[]
         {
-            RefresProcessor();
-        }
+            new MetaLayerPivot(),
+            new MetaLayerRect(),
+            new MetaLayerTransform(),
+        }.ToDictionary(item => item.actionName);
 
 
-        public static void RefresProcessor()
-        {
-            layerProcessors.Clear();
-            var processorTypes = FindAllTypes(typeof(MetaLayerProcessor));
-            // Debug.Log("Found " + processorTypes.Length + " layer processor(s).");
-            foreach (var type in processorTypes)
-            {
-                if (type.IsAbstract) continue;
-                try
-                {
-                    var instance = (MetaLayerProcessor)type.GetConstructor(new Type[0]).Invoke(new object[0]);
-                    if (layerProcessors.ContainsKey(instance.actionName))
-                    {
-                        Log.Error(string.Format("Duplicate processor with name {0}: {1}", instance.actionName, instance));
-                    }
-                    else
-                    {
-                        layerProcessors.Add(instance.actionName, instance);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error("Can't instantiate meta processor " + type);
-                    Log.Error(ex);
-                }
-            }
-        }
+        //public static void RefresProcessor()
+        //{
+        //    layerProcessors.Clear();
+        //    var processorTypes = FindAllTypes(typeof(MetaLayerProcessor));
+        //    // Debug.Log("Found " + processorTypes.Length + " layer processor(s).");
+        //    foreach (var type in processorTypes)
+        //    {
+        //        if (type.IsAbstract) continue;
+        //        try
+        //        {
+        //            var instance = (MetaLayerProcessor)type.GetConstructor(new Type[0]).Invoke(new object[0]);
+        //            if (layerProcessors.ContainsKey(instance.actionName))
+        //            {
+        //                Log.Error(string.Format("Duplicate processor with name {0}: {1}", instance.actionName, instance));
+        //            }
+        //            else
+        //            {
+        //                layerProcessors.Add(instance.actionName, instance);
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Log.Error("Can't instantiate meta processor " + type);
+        //            Log.Error(ex);
+        //        }
+        //    }
+        //}
 
 
-        static Type[] FindAllTypes(Type interfaceType) {
-            var types = System.Reflection.Assembly.GetExecutingAssembly()
-                .GetTypes();
-            return types.Where(type => type.IsClass && interfaceType.IsAssignableFrom(type))
-                        .ToArray();
-        }
+        //static Type[] FindAllTypes(Type interfaceType) {
+        //    var types = System.Reflection.Assembly.GetExecutingAssembly()
+        //        .GetTypes();
+        //    return types.Where(type => type.IsClass && interfaceType.IsAssignableFrom(type))
+        //                .ToArray();
+        //}
 
         struct LayerAndProcessor {
             public Layer layer;
