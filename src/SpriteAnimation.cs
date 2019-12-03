@@ -7,6 +7,14 @@ namespace MetaSprite
 {
     public class SpriteAnimation
     {
+        #region 
+        public static SpriteAnimation New(string path, string initTag)
+        {
+            return ASEImporter.Import(path, initTag);
+        }
+        #endregion
+
+
         AnimationClip currentTag = null;
         Sprite currentFrame => FrameCount > 0 ? currentTag?.Frames[CurrentFrameIndex] : null;
         public int FrameCount => currentTag?.Frames.Count ?? 0;
@@ -18,20 +26,67 @@ namespace MetaSprite
 
         public readonly int Width, Height;
 
-        public Dictionary<string, RectangleF> CurrentFrameRectDict => new Dictionary<string, RectangleF>(currentFrame?.rectDict);
-        public Dictionary<string, Vector2> CurrentFrameTransDict => new Dictionary<string, Vector2>(currentFrame?.transDict);
-        public Vector2 CurrentFrameTransToPos(Vector2 pos, Vector2 trans)
+        public bool TryGetCurrentFrameRect(string key, out RectangleF r)
         {
-            var pof = CurrentFramePiovtOffset;
-            return new Vector2(pos.X + trans.X - (pof.X * Width), pos.Y + trans.Y - (pof.Y * Height));
+            return CurrentFrameRectDict.TryGetValue(key, out r);
         }
-        public RectangleF CurrentFrameRectToPos(Vector2 pos, RectangleF rect)
+
+        public bool TryGetCurrentFrameTrans(string key, out Vector2 p)
         {
-            var pof = CurrentFramePiovtOffset;
-            return new RectangleF(
-                        pos.X + rect.X - (pof.X * Width), pos.Y + rect.Y - (pof.Y * Height),
-                        rect.Width, rect.Height);
+            return CurrentFrameTransDict.TryGetValue(key, out p);
         }
+
+        public IEnumerable<string> CurrentFrameRectKeys => currentFrame.rectDict.Keys;
+        public Dictionary<string, RectangleF> CurrentFrameRectDict
+        {
+            get
+            {
+                if (currentFrame == null)
+                    return null;
+
+                var pof = CurrentFramePiovtOffset;
+
+                var dict = new Dictionary<string, RectangleF>();
+                foreach (var kv in currentFrame.rectDict)
+                {
+                    dict[kv.Key] = new RectangleF(
+                        kv.Value.X - (pof.X * Width), 
+                        kv.Value.Y - (pof.Y * Height),
+                        kv.Value.Width, kv.Value.Height);
+                }
+                return dict;
+            }
+        }
+
+        public IEnumerable<string> CurrentFrameTransKeys => currentFrame.transDict.Keys;
+        public Dictionary<string, Vector2> CurrentFrameTransDict
+        {
+            get
+            {
+                if (currentFrame == null)
+                    return null;
+
+                var pof = CurrentFramePiovtOffset;
+                var dict = new Dictionary<string, Vector2>();
+                foreach (var kv in currentFrame.transDict)
+                {
+                    dict[kv.Key] = new Vector2(kv.Value.X - (pof.X * Width), kv.Value.Y - (pof.Y * Height));
+                }
+                return dict;
+            }
+        }
+        //public Vector2 CurrentFrameTransToPos(Vector2 pos, Vector2 trans)
+        //{
+        //    var pof = CurrentFramePiovtOffset;
+        //    return new Vector2(pos.X + trans.X - (pof.X * Width), pos.Y + trans.Y - (pof.Y * Height));
+        //}
+        //public RectangleF CurrentFrameRectToPos(Vector2 pos, RectangleF rect)
+        //{
+        //    var pof = CurrentFramePiovtOffset;
+        //    return new RectangleF(
+        //                pos.X + rect.X - (pof.X * Width), pos.Y + rect.Y - (pof.Y * Height),
+        //                rect.Width, rect.Height);
+        //}
         public Vector2 CurrentFramePiovtOffset => currentFrame.spritedPivot;
 
         /// <summary>

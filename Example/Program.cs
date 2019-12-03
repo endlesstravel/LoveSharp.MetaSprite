@@ -16,7 +16,7 @@ namespace Example
         public void ToNextTag()
         {
             tagNameIndex = ++tagNameIndex % tagNameList.Count;
-            ani.SetTag(tagNameList[tagNameIndex], true);
+            ani.SetTag(tagNameList[tagNameIndex], false);
         }
 
         public void Reset(string path)
@@ -69,12 +69,14 @@ namespace Example
 
                 foreach (var kv in ani.CurrentFrameRectDict) // rect
                 {
-                    Graphics.Rectangle(DrawMode.Line, ani.CurrentFrameRectToPos(pos, kv.Value));
+                    var pp_rect = kv.Value;
+                    pp_rect.Location += pos;
+                    Graphics.Rectangle(DrawMode.Line, pp_rect);
                 }
 
                 foreach (var kv in ani.CurrentFrameTransDict) // trans
                 {
-                    var pps = ani.CurrentFrameTransToPos(pos, kv.Value);
+                    var pps = pos + kv.Value;// ani.CurrentFrameTransToPos(pos, kv.Value);
                     DrawCrossCircle(pps, 5);
                     Graphics.Print(kv.Key, pps.X, pps.Y);
                 }
