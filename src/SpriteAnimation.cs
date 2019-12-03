@@ -12,6 +12,39 @@ namespace MetaSprite
         {
             return ASEImporter.Import(path, initTag);
         }
+
+        /// <summary>
+        /// clone of this
+        /// </summary>
+        public SpriteAnimation Clone()
+        {
+            return new SpriteAnimation(this);
+        }
+
+        /// <summary>
+        /// clone of other
+        /// </summary>
+        public SpriteAnimation(SpriteAnimation other)
+        {
+            renderableFrameTagDict = other.renderableFrameTagDict;
+            reversedRenderableFrameTagDict = other.reversedRenderableFrameTagDict;
+            ReallySetTag(this.TagNameIter.FirstOrDefault(), false);
+            IsPaused = false;
+
+            Width = other.Width;
+            Height = other.Height;
+        }
+        public SpriteAnimation(Dictionary<string, AnimationClip> dict, Dictionary<string, AnimationClip> reversedAniDict, int widht, int height, string initialTag)
+        {
+            this.renderableFrameTagDict = dict ?? throw new System.ArgumentNullException(nameof(dict));
+            this.reversedRenderableFrameTagDict = reversedAniDict ?? throw new System.ArgumentNullException(nameof(dict));
+            ReallySetTag(initialTag, false);
+            IsPaused = false;
+
+            Width = widht;
+            Height = height;
+        }
+
         #endregion
 
 
@@ -21,8 +54,8 @@ namespace MetaSprite
         public string TagName => currentTag?.Name;
         public bool IsPaused { private set; get; }
 
-        Dictionary<string, AnimationClip> renderableFrameTagDict;
-        Dictionary<string, AnimationClip> reversedRenderableFrameTagDict;
+        readonly Dictionary<string, AnimationClip> renderableFrameTagDict;
+        readonly Dictionary<string, AnimationClip> reversedRenderableFrameTagDict;
 
         public readonly int Width, Height;
 
@@ -93,17 +126,6 @@ namespace MetaSprite
         /// all tag name
         /// </summary>
         public IEnumerable<string> TagNameIter => renderableFrameTagDict.Keys;
-
-        public SpriteAnimation(Dictionary<string, AnimationClip> dict, Dictionary<string, AnimationClip> reversedAniDict, int widht, int height, string initialTag)
-        {
-            this.renderableFrameTagDict = dict ?? throw new System.ArgumentNullException(nameof(dict));
-            this.reversedRenderableFrameTagDict = reversedAniDict ?? throw new System.ArgumentNullException(nameof(dict));
-            ReallySetTag(initialTag, false);
-            IsPaused = false;
-
-            Width = widht;
-            Height = height;
-        }
 
 
 
