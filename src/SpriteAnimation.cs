@@ -481,7 +481,7 @@ namespace MetaSprite
     {
         public RectangleF Rect => rect;
         readonly internal RectangleF rect;
-        readonly internal Quad quad;
+        readonly public Quad quad;
         readonly internal Vector2 offset;
 
         internal SpriteAnimationSubarea(RectangleF rect, Quad quad, Vector2 offset)

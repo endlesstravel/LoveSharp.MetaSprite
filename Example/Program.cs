@@ -180,7 +180,14 @@ namespace Example
             qlist = SplitNine(aniRect, contentRect).Select(item => ani.GenSubRegionQuad(item)).ToArray();
         }
 
-        
+        Shader reaptedShader = Graphics.NewShader(@"
+    uniform vec4 texture_rect;
+   vec4 effect( vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords )
+    {
+        vec4 texcolor = Texel(tex, vec2(texture_rect.x + texture_rect.z *screen_coords.x/love_ScreenSize.x, texture_rect.y + texture_rect.w * screen_coords.y/love_ScreenSize.y));
+        return texcolor * color;
+    }
+");
         public override void Draw()
         {
             Graphics.Clear(Color.IndianRed);
@@ -198,6 +205,7 @@ namespace Example
             // draw no changed l-t/r-t/l-b/rb
             foreach (var regIndex in new int[] {0, 2, 6, 8 })
             {
+                break;
                 var reg = qlist[regIndex];
                 var draw_rect = ddfrList[regIndex];
                 ani.DrawSubRegion((quad, img, pos, offset) =>
@@ -207,12 +215,17 @@ namespace Example
             }
 
             // draw scaled pic
-            foreach (var regIndex in new int[] { 1, 7, 3, 5, 4 })
+            Graphics.SetShader(reaptedShader);
+            //foreach (var regIndex in new int[] { 1, 7, 3, 5, 4 })
+            foreach (var regIndex in new int[] {  4 })
             {
                 var reg = qlist[regIndex];
                 var draw_rect = ddfrList[regIndex];
+                var vvp = reg.quad.GetViewport();
+                reaptedShader.SendVector4("texture_rect", new Vector4(vvp.X, vvp.Y, vvp.Width, vvp.Height));
                 ani.DrawSubRegion((quad, img, pos_offset, offset) =>
                 {
+                    //img.SetWrap(WrapMode.Repeat, WrapMode.Repeat);
                     var scaleX = draw_rect.Width / reg.Rect.Width;
                     var scaleY = draw_rect.Height / reg.Rect.Height;
                     Graphics.Draw(quad, img, 
@@ -221,6 +234,7 @@ namespace Example
                         0, scaleX, scaleY, offset.X, offset.Y);
                 }, reg.Rect);
             }
+            Graphics.SetShader(); ;
 
 
             Graphics.SetColor(Color.White);
