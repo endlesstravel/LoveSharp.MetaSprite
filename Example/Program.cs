@@ -120,8 +120,78 @@ namespace Example
 
         static void Main(string[] args)
         {
-            Boot.Init();
+            Boot.Init(new BootConfig()
+            {
+                WindowWidth = 1000,
+                WindowHeight = 800,
+            });
+            Boot.Run(new BtnSubAreaTest());
             Boot.Run(new Program());
+        }
+    }
+
+
+    public class BtnSubAreaTest : Scene
+    {
+        readonly SpriteAnimation ani = SpriteAnimation.New("examples/ui_menu_option.aseprite", "selected");
+        //readonly SpriteAnimation ani = SpriteAnimation.New("examples/ui_menu_option.aseprite", "normal");
+
+        SpriteAnimationSubarea[] qlist;
+        public override void Load()
+        {
+            base.Load();
+            ani.TryGetCurrentFrameRect("text", out var contentRect);
+            var aniRect = new RectangleF(0, 0, ani.Width, ani.Height);
+
+            float left_x = 0, middle_x = contentRect.Left, right_x = contentRect.Right;
+            float top_y = 0, middle_y = contentRect.Top, bottom_y = contentRect.Bottom;
+            float left_w = contentRect.Left, middle_w = contentRect.Width, right_w = aniRect.Right - contentRect.Right;
+            float top_h = contentRect.Top, middle_h = contentRect.Height, bottom_h = aniRect.Bottom - contentRect.Bottom;
+
+            var rectList = new RectangleF[]
+            {
+                new RectangleF(left_x, top_y, left_w, top_h), // left - top
+                new RectangleF(middle_x, top_y, middle_w, top_h), // middle - top
+                new RectangleF(right_x, top_y, right_w, top_h), // right - top
+                
+                new RectangleF(left_x, middle_y, left_w, middle_h), // left - middle
+                new RectangleF(middle_x, middle_y, middle_w, middle_h), // middle - middle
+                new RectangleF(right_x, middle_y, right_w, middle_h), // right - middle
+                
+                new RectangleF(left_x, bottom_y, left_w, bottom_h), // left - bottom
+                new RectangleF(middle_x, bottom_y, middle_w, bottom_h), // middle - bottom
+                new RectangleF(right_x, bottom_y, right_w, bottom_h), // right - bottom
+            };
+            qlist = rectList.Select(item => ani.GenSubRegionQuad(item)).ToArray();
+        }
+
+        public override void Draw()
+        {
+            Graphics.Clear(Color.IndianRed);
+            var drawRect = new RectangleF(100, 100, 200, 200);
+
+            Graphics.Push();
+            Graphics.Scale(8);
+            Graphics.SetColor(Color.Green);
+            Graphics.SetLineWidth(1/8f);
+            Graphics.SetColor(Color.White);
+            //ani.DrawSubRegion(qlist[4].Item1, 0, 0);
+
+            foreach (var reg in qlist.Skip(0).Take(9))
+            {
+                //ani.DrawSubRegion(reg.Item1, reg.Item2.X, reg.Item2.Y);
+                //ani.DrawSubRegion(reg.Item2, reg.Item2.X, reg.Item2.Y);
+                ani.DrawSubRegion(reg.Rect, reg.Rect.X, reg.Rect.Y);
+                Graphics.Rectangle(DrawMode.Line, reg.Rect);
+            }
+            Graphics.Pop();
+
+            //Graphics.SetLineWidth(1);
+            //foreach (var reg in rectList)
+            //{
+            //    Graphics.Rectangle(DrawMode.Line, new RectangleF(reg.Location * 8, new SizeF(reg.Width * 8, reg.Height * 8)));
+            //}
+
         }
     }
 }

@@ -84,8 +84,8 @@ namespace MetaSprite
                 foreach (var kv in currentFrame.rectDict)
                 {
                     dict[kv.Key] = new RectangleF(
-                        kv.Value.X - (pof.X * Width), 
-                        kv.Value.Y - (pof.Y * Height),
+                        kv.Value.X - (pof.X), 
+                        kv.Value.Y - (pof.Y),
                         kv.Value.Width, kv.Value.Height);
                 }
                 return dict;
@@ -104,7 +104,7 @@ namespace MetaSprite
                 var dict = new Dictionary<string, Vector2>();
                 foreach (var kv in currentFrame.transDict)
                 {
-                    dict[kv.Key] = new Vector2(kv.Value.X - (pof.X * Width), kv.Value.Y - (pof.Y * Height));
+                    dict[kv.Key] = new Vector2(kv.Value.X - (pof.X ), kv.Value.Y - (pof.Y));
                 }
                 return dict;
             }
@@ -203,9 +203,102 @@ namespace MetaSprite
         {
             if (currentFrame != null)
             {
-                Graphics.Draw(currentFrame.quad, currentFrame.image, x, y, rot, sx, sy, 
-                    (currentFrame.pivot.X) * currentFrame.rect.Width + (Width * currentFrame.spritedPivot.X) + ox,
-                    (1 - currentFrame.pivot.Y) * currentFrame.rect.Height - Height + (Height * currentFrame.spritedPivot.Y) + oy);
+                //Graphics.Draw(currentFrame.quad, currentFrame.image, x, y, rot, sx, sy, 
+                //    (currentFrame.pivot.X)  + ox,
+                //    (currentFrame.pivot.Y) + oy);
+                //Graphics.Draw(currentFrame.quad, currentFrame.image, x, y, rot, sx, sy,
+                //    (currentFrame.pivot.X) * currentFrame.rect.Width,
+                //    (1 - currentFrame.pivot.Y) * currentFrame.rect.Height - Height
+                //    );
+                Graphics.Draw(currentFrame.quad, currentFrame.image, x, y, rot, sx, sy,
+                    (-currentFrame.imgQuadOffset.X + currentFrame.spritedPivot.X),
+                    (-currentFrame.imgQuadOffset.Y + currentFrame.spritedPivot.Y)
+                    );
+            }
+        }
+
+        public static RectangleF ToRect(Viewport vp) => new RectangleF(vp.x, vp.y, vp.w, vp.h);
+        public static Viewport ToViewport(RectangleF r) => new Viewport(r.X, r.Y, r.Width, r.Height);
+
+
+        public SpriteAnimationSubarea GenSubRegionQuad(RectangleF subArea)
+        {
+            var vpr = ToRect(currentFrame.quad.GetViewport());
+            var original_srect = new RectangleF(
+                vpr.X + subArea.X - currentFrame.imgQuadOffset.X, 
+                vpr.Y + subArea.Y - currentFrame.imgQuadOffset.Y,
+                subArea.Width, subArea.Height);
+            var srect = RectangleF.Intersect(vpr, original_srect);
+            var sub_quad = Graphics.NewQuad(srect.X, srect.Y, srect.Width, srect.Height, currentFrame.image.GetWidth(), currentFrame.image.GetHeight());
+            return new SpriteAnimationSubarea(subArea, sub_quad, new Vector2(srect.X - vpr.X, srect.Y - vpr.Y));
+        }
+
+
+        /// <summary>
+        /// Draw the animation's current frame in a specified location.
+        /// </summary>
+        public void DrawSubRegion(SpriteAnimationSubarea subArea, float x, float y, float rot = 0, float sx = 1, float sy = 1, float ox = 0, float oy = 0)
+        {
+            if (currentFrame != null)
+            {
+                Graphics.Draw(subArea.quad, currentFrame.image, x - subArea.rect.X, y - subArea.rect.Y, rot, sx, sy,
+                    (-currentFrame.imgQuadOffset.X + currentFrame.spritedPivot.X) - subArea.offset.X,
+                    (-currentFrame.imgQuadOffset.Y + currentFrame.spritedPivot.Y) - subArea.offset.Y
+                    );
+            }
+        }
+
+
+        /// <summary>
+        /// Draw the animation's current frame in a specified location.
+        /// </summary>
+        public void DrawSubRegion(RectangleF subArea, float x, float y, float rot = 0, float sx = 1, float sy = 1, float ox = 0, float oy = 0)
+        {
+            if (currentFrame != null)
+            {
+                DrawSubRegion(GenSubRegionQuad(subArea), x, y, rot, sx, sy, ox, oy);
+            }
+        }
+
+
+        ///// <summary>
+        ///// Draw the animation's current frame in a specified location.
+        ///// </summary>
+        //public void Draw(Action<Quad, Image, Vector2> drawFunc)
+        //{
+        //    if (currentFrame != null)
+        //    {
+        //        drawFunc?.Invoke(currentFrame.quad, currentFrame.image, new Vector2(
+        //            (currentFrame.pivot.X) * currentFrame.rect.Width + (Width * currentFrame.spritedPivot.X),
+        //            (1 - currentFrame.pivot.Y) * currentFrame.rect.Height - Height + (Height * currentFrame.spritedPivot.Y)));
+        //    }
+        //}
+
+        /// <summary>
+        /// Draw the animation's current frame in a specified location.
+        /// </summary>
+        public void DrawSubRegion(Action<Quad, Image, Vector2> drawFunc, RectangleF subArea)
+        {
+            if (currentFrame != null)
+            {
+                void DrawSub(Quad quadToDraw)
+                {
+                    var qvp = quadToDraw.GetViewport();
+
+                    drawFunc?.Invoke(quadToDraw, currentFrame.image, new Vector2(
+                            (-currentFrame.imgQuadOffset.X + currentFrame.spritedPivot.X),
+                            (-currentFrame.imgQuadOffset.Y + currentFrame.spritedPivot.Y)
+                        ));
+                }
+
+                var vp = currentFrame.quad.GetViewport();
+                //var subQuad = Graphics.NewQuad(
+                //    vp.X + subArea.X,
+                //    vp.Y + subArea.Y,
+                //    subArea.Width,
+                //    subArea.Height
+                //    , currentFrame.image.GetWidth(), currentFrame.image.GetHeight());
+                DrawSub(currentFrame.quad);
             }
         }
 
@@ -363,6 +456,21 @@ namespace MetaSprite
         {
             IsPaused = true;
             SetFrame(onLast ? currentTag.Frames.Count - 1 : 0);
+        }
+    }
+
+    public class SpriteAnimationSubarea
+    {
+        public RectangleF Rect => rect;
+        readonly internal RectangleF rect;
+        readonly internal Quad quad;
+        readonly internal Vector2 offset;
+
+        internal SpriteAnimationSubarea(RectangleF rect, Quad quad, Vector2 offset)
+        {
+            this.rect = rect;
+            this.quad = quad;
+            this.offset = offset;
         }
     }
 }

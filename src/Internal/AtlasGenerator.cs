@@ -107,6 +107,7 @@ namespace MetaSprite.Internal {
             var texture = Image.NewImageData(packResult.imageSize, packResult.imageSize);
             texture.SetPixels(textureData);
             var textureImage = Graphics.NewImage(texture);
+            textureImage.SetFilter(FilterMode.Nearest, FilterMode.Nearest);
             // build image end
 
             Vector2 oldPivotNorm = Vector2.Zero;
@@ -126,14 +127,11 @@ namespace MetaSprite.Internal {
                 metadata.alignment = SpriteAlignment.Custom;
                 metadata.rect = new RectangleF(pos.x, pos.y, image.finalWidth, image.finalHeight);
                 metadata.quad = Graphics.NewQuad(pos.x, pos.y, image.finalWidth, image.finalHeight, packResult.imageSize, packResult.imageSize);
-            
-                // calculate relative pivot
-                var oldPivotTex = FunctionBoost.Vector2_Scale(oldPivotNorm, new Vector2(file.width, file.height));
-                var newPivotTex = oldPivotTex - new Vector2(image.minx, file.height - image.maxy - 1);
-                var newPivotNorm = FunctionBoost.Vector2_Scale(newPivotTex, new Vector2(1.0f / image.finalWidth, 1.0f / image.finalHeight));
-                metadata.pivot = newPivotNorm;
 
-                ctx.spriteCropPositions.Add(new Vector2(image.minx, file.height - image.maxy - 1));
+                // calculate relative pivot
+                metadata.imgQuadOffset = new Vector2(image.minx, image.miny);
+
+                //ctx.spriteCropPositions.Add(new Vector2(image.minx, file.height - image.maxy - 1));
 
                 metaList.Add(metadata);
             }

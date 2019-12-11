@@ -11,7 +11,7 @@ namespace MetaSprite
         public Quad quad;
         public SpriteAlignment alignment;
         public RectangleF rect;
-        public Vector2 pivot;
+        public Vector2 imgQuadOffset;
         public Vector2 spritedPivot;
 
         readonly public Dictionary<string, RectangleF> rectDict = new Dictionary<string, RectangleF>();

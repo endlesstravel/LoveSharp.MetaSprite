@@ -82,7 +82,8 @@ namespace MetaSprite {
 
                 Vector2 pivot = pivots[j - 1].pivot;
                 //pivot -= ctx.spriteCropPositions[i];
-                pivot = FunctionBoost.Vector2_Scale(pivot, new Vector2(1.0f / file.width, 1.0f / file.height));
+                //pivot = FunctionBoost.Vector2_Scale(pivot, new Vector2(1.0f / file.width, 1.0f / file.height));
+                //spriteSheet[i].spritedPivot = new Vector2(pivot.X, pivot.Y);
 
                 spriteSheet[i].spritedPivot = new Vector2(pivot.X, pivot.Y);
             }
