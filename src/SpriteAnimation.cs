@@ -304,6 +304,23 @@ namespace MetaSprite
             }
         }
 
+
+        /// <summary>
+        /// Draw the animation's current frame in a specified location. for scale
+        /// </summary>
+        public void DrawSubRegion(Action<Quad, Image, Vector2, Vector2> drawFunc, RectangleF subAreaRect)
+        {
+            if (currentFrame != null)
+            {
+                var subArea = GenSubRegionQuad(subAreaRect);
+                drawFunc?.Invoke(subArea.quad, currentFrame.image, new Vector2(-subArea.rect.X, -subArea.rect.Y),
+                    new Vector2(
+                        (-currentFrame.imgQuadOffset.X + currentFrame.spritedPivot.X) - subArea.offset.X,
+                        (-currentFrame.imgQuadOffset.Y + currentFrame.spritedPivot.Y) - subArea.offset.Y
+                    ));
+            }
+        }
+
         public int CurrentFrameIndex
         {
             get;
