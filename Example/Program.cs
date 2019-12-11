@@ -125,8 +125,8 @@ namespace Example
                 WindowWidth = 1000,
                 WindowHeight = 800,
             });
-            Boot.Run(new BtnSubAreaTest());
             Boot.Run(new Program());
+            Boot.Run(new BtnSubAreaTest());
         }
     }
 
@@ -175,13 +175,19 @@ namespace Example
             Graphics.SetColor(Color.Green);
             Graphics.SetLineWidth(1/8f);
             Graphics.SetColor(Color.White);
-            //ani.DrawSubRegion(qlist[4].Item1, 0, 0);
+
+            //ani.Draw(0, 0);
+            ani.Draw((quad, img, offset)=> {
+                Graphics.Draw(quad, img, 0, 0, 0, 1, 1, offset.X, offset.Y);
+            });
 
             foreach (var reg in qlist.Skip(0).Take(9))
             {
-                //ani.DrawSubRegion(reg.Item1, reg.Item2.X, reg.Item2.Y);
-                //ani.DrawSubRegion(reg.Item2, reg.Item2.X, reg.Item2.Y);
-                ani.DrawSubRegion(reg.Rect, reg.Rect.X, reg.Rect.Y);
+                //ani.DrawSubRegion(reg.Rect, reg.Rect.X, reg.Rect.Y);
+                //ani.DrawSubRegion((quad, img, pos, offset) =>
+                //{
+                //    Graphics.Draw(quad, img, pos.X, pos.Y, 0, 1, 1, offset.X, offset.Y);
+                //}, reg.Rect, reg.Rect.Location);
                 Graphics.Rectangle(DrawMode.Line, reg.Rect);
             }
             Graphics.Pop();

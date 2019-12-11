@@ -203,13 +203,6 @@ namespace MetaSprite
         {
             if (currentFrame != null)
             {
-                //Graphics.Draw(currentFrame.quad, currentFrame.image, x, y, rot, sx, sy, 
-                //    (currentFrame.pivot.X)  + ox,
-                //    (currentFrame.pivot.Y) + oy);
-                //Graphics.Draw(currentFrame.quad, currentFrame.image, x, y, rot, sx, sy,
-                //    (currentFrame.pivot.X) * currentFrame.rect.Width,
-                //    (1 - currentFrame.pivot.Y) * currentFrame.rect.Height - Height
-                //    );
                 Graphics.Draw(currentFrame.quad, currentFrame.image, x, y, rot, sx, sy,
                     (-currentFrame.imgQuadOffset.X + currentFrame.spritedPivot.X),
                     (-currentFrame.imgQuadOffset.Y + currentFrame.spritedPivot.Y)
@@ -217,11 +210,26 @@ namespace MetaSprite
             }
         }
 
+        /// <summary>
+        /// Draw the animation's current frame in a specified location.
+        /// </summary>
+        public void Draw(Action<Quad, Image, Vector2> drawFunc)
+        {
+            if (currentFrame != null)
+            {
+                drawFunc?.Invoke(currentFrame.quad, currentFrame.image,
+                    new Vector2(
+                        (-currentFrame.imgQuadOffset.X + currentFrame.spritedPivot.X),
+                        (-currentFrame.imgQuadOffset.Y + currentFrame.spritedPivot.Y)
+                    ));
+            }
+        }
+
+
         public static RectangleF ToRect(Viewport vp) => new RectangleF(vp.x, vp.y, vp.w, vp.h);
         public static Viewport ToViewport(RectangleF r) => new Viewport(r.X, r.Y, r.Width, r.Height);
 
-
-        public SpriteAnimationSubarea GenSubRegionQuad(RectangleF subArea)
+        public SpriteAnimationSubarea GenSubRegionQuadWithoutCache(RectangleF subArea)
         {
             var vpr = ToRect(currentFrame.quad.GetViewport());
             var original_srect = new RectangleF(
@@ -248,60 +256,53 @@ namespace MetaSprite
             }
         }
 
+        Dictionary<RectangleF, SpriteAnimationSubarea> subareaCacheDict = new Dictionary<RectangleF, SpriteAnimationSubarea>();
 
-        /// <summary>
-        /// Draw the animation's current frame in a specified location.
-        /// </summary>
-        public void DrawSubRegion(RectangleF subArea, float x, float y, float rot = 0, float sx = 1, float sy = 1, float ox = 0, float oy = 0)
+        public SpriteAnimationSubarea GenSubRegionQuad(RectangleF subAreaRect)
         {
-            if (currentFrame != null)
+            if (subareaCacheDict.TryGetValue(subAreaRect, out var cachedSubarea) == false)
             {
-                DrawSubRegion(GenSubRegionQuad(subArea), x, y, rot, sx, sy, ox, oy);
-            }
-        }
+                cachedSubarea = GenSubRegionQuadWithoutCache(subAreaRect);
 
-
-        ///// <summary>
-        ///// Draw the animation's current frame in a specified location.
-        ///// </summary>
-        //public void Draw(Action<Quad, Image, Vector2> drawFunc)
-        //{
-        //    if (currentFrame != null)
-        //    {
-        //        drawFunc?.Invoke(currentFrame.quad, currentFrame.image, new Vector2(
-        //            (currentFrame.pivot.X) * currentFrame.rect.Width + (Width * currentFrame.spritedPivot.X),
-        //            (1 - currentFrame.pivot.Y) * currentFrame.rect.Height - Height + (Height * currentFrame.spritedPivot.Y)));
-        //    }
-        //}
-
-        /// <summary>
-        /// Draw the animation's current frame in a specified location.
-        /// </summary>
-        public void DrawSubRegion(Action<Quad, Image, Vector2> drawFunc, RectangleF subArea)
-        {
-            if (currentFrame != null)
-            {
-                void DrawSub(Quad quadToDraw)
+                if (subareaCacheDict.Count < 1000)
                 {
-                    var qvp = quadToDraw.GetViewport();
-
-                    drawFunc?.Invoke(quadToDraw, currentFrame.image, new Vector2(
-                            (-currentFrame.imgQuadOffset.X + currentFrame.spritedPivot.X),
-                            (-currentFrame.imgQuadOffset.Y + currentFrame.spritedPivot.Y)
-                        ));
+                    subareaCacheDict[subAreaRect] = cachedSubarea;
                 }
+                else
+                {
+                    Log.Warnning("too many cache in DrawSubRegion");
+                }
+            }
 
-                var vp = currentFrame.quad.GetViewport();
-                //var subQuad = Graphics.NewQuad(
-                //    vp.X + subArea.X,
-                //    vp.Y + subArea.Y,
-                //    subArea.Width,
-                //    subArea.Height
-                //    , currentFrame.image.GetWidth(), currentFrame.image.GetHeight());
-                DrawSub(currentFrame.quad);
+            return cachedSubarea;
+        }
+
+        /// <summary>
+        /// Draw the animation's current frame in a specified location.
+        /// </summary>
+        public void DrawSubRegion(RectangleF subAreaRect, float x, float y, float rot = 0, float sx = 1, float sy = 1, float ox = 0, float oy = 0)
+        {
+            if (currentFrame != null)
+            {
+                DrawSubRegion(GenSubRegionQuad(subAreaRect), x, y, rot, sx, sy, ox, oy);
             }
         }
 
+        /// <summary>
+        /// Draw the animation's current frame in a specified location.
+        /// </summary>
+        public void DrawSubRegion(Action<Quad, Image, Vector2, Vector2> drawFunc, RectangleF subAreaRect, Vector2 pos)
+        {
+            if (currentFrame != null)
+            {
+                var subArea = GenSubRegionQuad(subAreaRect);
+                drawFunc?.Invoke(subArea.quad, currentFrame.image, pos + new Vector2(-subArea.rect.X, -subArea.rect.Y),
+                    new Vector2(
+                        (-currentFrame.imgQuadOffset.X + currentFrame.spritedPivot.X) - subArea.offset.X,
+                        (-currentFrame.imgQuadOffset.Y + currentFrame.spritedPivot.Y) - subArea.offset.Y
+                    ));
+            }
+        }
 
         public int CurrentFrameIndex
         {
