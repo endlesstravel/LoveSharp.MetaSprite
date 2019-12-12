@@ -109,18 +109,7 @@ namespace MetaSprite
                 return dict;
             }
         }
-        //public Vector2 CurrentFrameTransToPos(Vector2 pos, Vector2 trans)
-        //{
-        //    var pof = CurrentFramePiovtOffset;
-        //    return new Vector2(pos.X + trans.X - (pof.X * Width), pos.Y + trans.Y - (pof.Y * Height));
-        //}
-        //public RectangleF CurrentFrameRectToPos(Vector2 pos, RectangleF rect)
-        //{
-        //    var pof = CurrentFramePiovtOffset;
-        //    return new RectangleF(
-        //                pos.X + rect.X - (pof.X * Width), pos.Y + rect.Y - (pof.Y * Height),
-        //                rect.Width, rect.Height);
-        //}
+
         public Vector2 CurrentFramePiovtOffset => currentFrame.spritedPivot;
 
         /// <summary>
@@ -229,7 +218,21 @@ namespace MetaSprite
         public static RectangleF ToRect(Viewport vp) => new RectangleF(vp.x, vp.y, vp.w, vp.h);
         public static Viewport ToViewport(RectangleF r) => new Viewport(r.X, r.Y, r.Width, r.Height);
 
-        public SpriteAnimationSubarea GenSubRegionQuadWithoutCache(RectangleF subArea)
+        class SpriteAnimationSubarea
+        {
+            public RectangleF Rect => rect;
+            readonly internal RectangleF rect;
+            readonly public Quad quad;
+            readonly internal Vector2 offset;
+
+            internal SpriteAnimationSubarea(RectangleF rect, Quad quad, Vector2 offset)
+            {
+                this.rect = rect;
+                this.quad = quad;
+                this.offset = offset;
+            }
+        }
+        SpriteAnimationSubarea GenSubRegionQuad(RectangleF subArea)
         {
             var vpr = ToRect(currentFrame.quad.GetViewport());
             var original_srect = new RectangleF(
@@ -245,7 +248,7 @@ namespace MetaSprite
         /// <summary>
         /// Draw the animation's current frame in a specified location.
         /// </summary>
-        public void DrawSubRegion(SpriteAnimationSubarea subArea, float x, float y, float rot = 0, float sx = 1, float sy = 1, float ox = 0, float oy = 0)
+        void DrawSubRegion(SpriteAnimationSubarea subArea, float x, float y, float rot = 0, float sx = 1, float sy = 1, float ox = 0, float oy = 0)
         {
             if (currentFrame != null)
             {
@@ -254,27 +257,6 @@ namespace MetaSprite
                     (-currentFrame.imgQuadOffset.Y + currentFrame.spritedPivot.Y) - subArea.offset.Y
                     );
             }
-        }
-
-        Dictionary<RectangleF, SpriteAnimationSubarea> subareaCacheDict = new Dictionary<RectangleF, SpriteAnimationSubarea>();
-
-        public SpriteAnimationSubarea GenSubRegionQuad(RectangleF subAreaRect)
-        {
-            if (subareaCacheDict.TryGetValue(subAreaRect, out var cachedSubarea) == false)
-            {
-                cachedSubarea = GenSubRegionQuadWithoutCache(subAreaRect);
-
-                if (subareaCacheDict.Count < 1000)
-                {
-                    subareaCacheDict[subAreaRect] = cachedSubarea;
-                }
-                else
-                {
-                    Log.Warnning("too many cache in DrawSubRegion");
-                }
-            }
-
-            return cachedSubarea;
         }
 
         /// <summary>
@@ -288,20 +270,10 @@ namespace MetaSprite
             }
         }
 
-        ///// <summary>
-        ///// Draw the animation's current frame in a specified location.
-        ///// </summary>
-        //public void DrawSubRegion(Action<Quad, Image, Vector2, Vector2> drawFunc, RectangleF subAreaRect, Vector2 pos)
+        //public RectangleF GetCurrentQuadViewport()
         //{
-        //    if (currentFrame != null)
-        //    {
-        //        var subArea = GenSubRegionQuad(subAreaRect);
-        //        drawFunc?.Invoke(subArea.quad, currentFrame.image, pos + new Vector2(-subArea.rect.X, -subArea.rect.Y),
-        //            new Vector2(
-        //                (-currentFrame.imgQuadOffset.X + currentFrame.spritedPivot.X) - subArea.offset.X,
-        //                (-currentFrame.imgQuadOffset.Y + currentFrame.spritedPivot.Y) - subArea.offset.Y
-        //            ));
-        //    }
+        //    var vp = currentFrame.quad.GetViewport();
+        //    return new RectangleF(vp.x, vp.y, vp.w, vp.h);
         //}
 
 
@@ -359,19 +331,21 @@ namespace MetaSprite
             if (currentTag == null)
                 throw new Exception("not set tag yet");
 
+            // invoke ....
+            if (isNeedStartToCallFrameAction)
+            {
+                FramePassed?.Invoke(currentTag.Name, 0);
+                isNeedStartToCallFrameAction = false;
+            }
+
             if (currentTag.loopTime)
             {
                 var lastFrame = CurrentFrameIndex;
                 var list = ElapsedTimeMoveFrame(CurrentFrameIndex, TimeElapsed, dt);
 
-                if (isNeedStartToCallFrameAction)
-                {
-                    FrameBegin?.Invoke(currentTag.Name, 0);
-                    isNeedStartToCallFrameAction = false;
-                }
                 foreach (var itemIndex in list)
                 {
-                    FrameBegin?.Invoke(currentTag.Name, itemIndex);
+                    FramePassed?.Invoke(currentTag.Name, itemIndex);
                 }
 
                 // add the remain ....
@@ -391,19 +365,13 @@ namespace MetaSprite
                     var curFrame = CurrentFrameIndex;
                     var list = ElapsedTimeMoveFrame(CurrentFrameIndex, TimeElapsed, dt);
 
-                    // invoke ....
-                    if (isNeedStartToCallFrameAction)
-                    {
-                        FrameBegin?.Invoke(currentTag.Name, 0);
-                        isNeedStartToCallFrameAction = false;
-                    }
                     foreach (var itemIndex in list)
                     {
                         if (itemIndex <= CurrentFrameIndex) // looped check
                             break;
 
                         curFrame = itemIndex;
-                        FrameBegin?.Invoke(currentTag.Name, itemIndex);
+                        FramePassed?.Invoke(currentTag.Name, itemIndex);
                         if (itemIndex == lastFrameIndex) // end of frame
                         {
                             break;
@@ -418,7 +386,7 @@ namespace MetaSprite
             }
         }
 
-        public event Action<string, int> FrameBegin;
+        public event Action<string, int> FramePassed;
 
 
         LinkedList<int> ElapsedTimeMoveFrame(int startFrame, float startTime, float dt, bool falg = true)
@@ -477,18 +445,4 @@ namespace MetaSprite
         }
     }
 
-    public class SpriteAnimationSubarea
-    {
-        public RectangleF Rect => rect;
-        readonly internal RectangleF rect;
-        readonly public Quad quad;
-        readonly internal Vector2 offset;
-
-        internal SpriteAnimationSubarea(RectangleF rect, Quad quad, Vector2 offset)
-        {
-            this.rect = rect;
-            this.quad = quad;
-            this.offset = offset;
-        }
-    }
 }

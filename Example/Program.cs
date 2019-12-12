@@ -26,7 +26,7 @@ namespace Example
             ani = ASEImporter.Import(path, null);
             aniCloned = ani.Clone();
 
-            ani.FrameBegin += (name, index) =>
+            ani.FramePassed += (name, index) =>
             {
                 if (index == ani.FrameCount - 1)
                 {
@@ -135,20 +135,22 @@ namespace Example
     class AniMetaSpriteButton
     {
         readonly SpriteAnimation ani;
-        readonly SpriteAnimationSubarea[] qlist;
+        readonly RectangleF[] nineRectList;
         public AniMetaSpriteButton(string path)
         {
-            ani = SpriteAnimation.New(path, "normal");
+            ani = SpriteAnimation.New(path, "hovered");
             ani.TryGetCurrentFrameRect("text", out var contentRect);
             var aniRect = new RectangleF(0, 0, ani.Width, ani.Height);
 
-            if (SplitNine(aniRect, contentRect, out var nineRectList) == false)
+            if (SplitNine(aniRect, contentRect, out nineRectList) == false)
             {
                 Log.Warnning("error nine button of " + path);
             }
-
-            qlist = nineRectList.Select(item => ani.GenSubRegionQuad(item)).ToArray();
         }
+
+        public void SetStateTag(string str) => ani.SetTag(str);
+        public void Update(float dt) => ani.Update(dt);
+        public string CurrentName => ani.TagName;
 
         /// <summary>
         /// split rect by other center rect<para></para>
@@ -245,9 +247,9 @@ namespace Example
             Action<Quad, Image, Vector2, Vector2, Vector2> unsacledDraw
             )
         {
-            if (SplitNine(drawRect, new RectangleF(qlist[4].Rect.Location,
-                 new SizeF(drawRect.Width - qlist[6].Rect.Width - qlist[8].Rect.Width,
-                 drawRect.Height - qlist[2].Rect.Height - qlist[8].Rect.Height)), out var drawedNineRectList) == false)
+            if (SplitNine(drawRect, new RectangleF(nineRectList[4].Location,
+                 new SizeF(drawRect.Width - nineRectList[6].Width - nineRectList[8].Width,
+                 drawRect.Height - nineRectList[2].Height - nineRectList[8].Height)), out var drawedNineRectList) == false)
             {
                 Log.Warnning("too small draw area " + this);
                 return;
@@ -262,13 +264,14 @@ namespace Example
                         Shader oldShader = Graphics.GetShader();
                         Graphics.SetShader(reaptedShader);
 
-                        var reg = qlist[regIndex];
+                        var reg = nineRectList[regIndex];
                         var draw_rect = drawedNineRectList[regIndex];
-                        var vvp = reg.quad.GetViewport();
+
                         ani.DrawSubRegion((quad, img, pos_offset, offset) =>
                         {
-                            var scaleX = draw_rect.Width / reg.Rect.Width;
-                            var scaleY = draw_rect.Height / reg.Rect.Height;
+                            var scaleX = draw_rect.Width / reg.Width;
+                            var scaleY = draw_rect.Height / reg.Height;
+                            var vvp = quad.GetViewport();
 
                             reaptedShader.SendVector4("texture_rect", new Vector4(
                                 vvp.X / img.GetWidth(), vvp.Y / img.GetHeight(),
@@ -276,35 +279,36 @@ namespace Example
                                 (vvp.Height) / img.GetHeight()));
                             reaptedShader.SendVector2("repeat_num", new Vector2(scaleX, scaleY));
                             sacledDraw?.Invoke(quad, img, draw_rect.Location, pos_offset, offset, new Vector2(scaleX, scaleY));
+
                             //Graphics.Draw(quad, img,
                             //    draw_rect.Location.X + pos_offset.X * scaleX,
                             //    draw_rect.Location.Y + pos_offset.Y * scaleY,
                             //    0, scaleX, scaleY, offset.X, offset.Y);
-                        }, reg.Rect);
+
+                        }, reg);
                         Graphics.SetShader(oldShader);
                     }
                     else
                     {
-                        var reg = qlist[regIndex];
+                        var reg = nineRectList[regIndex];
                         var draw_rect = drawedNineRectList[regIndex];
-                        var vvp = reg.quad.GetViewport();
                         ani.DrawSubRegion((quad, img, pos_offset, offset) =>
                         {
-                            var scaleX = draw_rect.Width / reg.Rect.Width;
-                            var scaleY = draw_rect.Height / reg.Rect.Height;
+                            var scaleX = draw_rect.Width / reg.Width;
+                            var scaleY = draw_rect.Height / reg.Height;
                             sacledDraw?.Invoke(quad, img, draw_rect.Location, pos_offset, offset, new Vector2(scaleX, scaleY));
-                        }, reg.Rect);
+                        }, reg);
                     }
                 }
                 else
                 {
-                    var reg = qlist[regIndex];
+                    var reg = nineRectList[regIndex];
                     var draw_rect = drawedNineRectList[regIndex];
                     ani.DrawSubRegion((quad, img, pos_offset, offset) =>
                     {
                         unsacledDraw?.Invoke(quad, img, draw_rect.Location, pos_offset, offset);
                         //Graphics.Draw(quad, img, pos.X + pos_offset.X, pos.Y + pos_offset.Y, 0, 1, 1, offset.X, offset.Y);
-                    }, reg.Rect);
+                    }, reg);
                 }
             }
 
@@ -325,7 +329,6 @@ namespace Example
             {
                 DrawSubArea(regIndex, true, HorizontalSideRepeatMode);
             }
-
             // draw center
             foreach (var regIndex in new int[] { 4 })
             {
@@ -339,8 +342,28 @@ namespace Example
     {
         readonly AniMetaSpriteButton ani = new AniMetaSpriteButton("examples/ui_menu_option.aseprite");
 
+        public override void Update(float dt)
+        {
+            base.Update(dt);
+            Window.SetTitle(ani.CurrentName);
+            if (Keyboard.IsPressed(KeyConstant.Number1))
+            {
+                ani.SetStateTag("normal");
+            }
+            if (Keyboard.IsPressed(KeyConstant.Number2))
+            {
+                ani.SetStateTag("hovered");
+            }
+            if (Keyboard.IsPressed(KeyConstant.Number3))
+            {
+                ani.SetStateTag("selected");
+            }
+            ani.Update(dt);
+        }
+
         public override void Draw()
         {
+
             Graphics.Clear(Color.IndianRed);
             float scaleF = 4;
             var drawRect = new RectangleF(20, 20, 140, 70);
@@ -349,29 +372,15 @@ namespace Example
             Graphics.Scale(scaleF);
             Graphics.SetColor(Color.Green);
             Graphics.SetColor(Color.White);
-
+            ani.CenterRepeatMode = true;
+            ani.VerticalSideRepeatMode = true;
+            ani.HorizontalSideRepeatMode = true;
             ani.Draw(drawRect);
             Graphics.SetLineWidth(1 / scaleF);
             Graphics.Rectangle(DrawMode.Line, drawRect);
             Graphics.SetLineWidth(1);
 
-            //foreach (var reg in qlist.Skip(0).Take(9))
-            //{
-            //    //ani.DrawSubRegion(reg.Rect, reg.Rect.X, reg.Rect.Y);
-            //    //ani.DrawSubRegion((quad, img, pos, offset) =>
-            //    //{
-            //    //    Graphics.Draw(quad, img, pos.X, pos.Y, 0, 1, 1, offset.X, offset.Y);
-            //    //}, reg.Rect, reg.Rect.Location);
-            //    Graphics.Rectangle(DrawMode.Line, reg.Rect);
-            //}
             Graphics.Pop();
-
-            //Graphics.SetLineWidth(1);
-            //foreach (var reg in rectList)
-            //{
-            //    Graphics.Rectangle(DrawMode.Line, new RectangleF(reg.Location * 8, new SizeF(reg.Width * 8, reg.Height * 8)));
-            //}
-
         }
     }
 }
