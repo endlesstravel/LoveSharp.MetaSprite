@@ -216,10 +216,15 @@ namespace Example
             {
                 var reg = qlist[regIndex];
                 var draw_rect = ddfrList[regIndex];
-                ani.DrawSubRegion((quad, img, pos, offset) =>
+                //ani.DrawSubRegion((quad, img, pos, offset) =>
+                //{
+                //    Graphics.Draw(quad, img, pos.X, pos.Y, 0, 1, 1, offset.X, offset.Y);
+                //}, reg.Rect, draw_rect.Location);
+                ani.DrawSubRegion((quad, img, pos_offset, offset) =>
                 {
-                    Graphics.Draw(quad, img, pos.X, pos.Y, 0, 1, 1, offset.X, offset.Y);
-                }, reg.Rect, draw_rect.Location);
+                    var pos = draw_rect.Location;
+                    Graphics.Draw(quad, img, pos.X + pos_offset.X, pos.Y + pos_offset.Y, 0, 1, 1, offset.X, offset.Y);
+                }, reg.Rect);
             }
 
             // draw scaled pic
@@ -255,12 +260,12 @@ namespace Example
             foreach (var reg in qlist.Skip(0).Take(9))
             {
                 break;
-                //ani.DrawSubRegion(reg.Rect, reg.Rect.X, reg.Rect.Y);
-                ani.DrawSubRegion((quad, img, pos, offset) =>
-                {
-                    Graphics.Draw(quad, img, pos.X, pos.Y, 0, 1, 1, offset.X, offset.Y);
-                }, reg.Rect, reg.Rect.Location + drawRect.Location);
-                Graphics.Rectangle(DrawMode.Line, reg.Rect.DefLocation(reg.Rect.Location + drawRect.Location));
+                ////ani.DrawSubRegion(reg.Rect, reg.Rect.X, reg.Rect.Y);
+                //ani.DrawSubRegion((quad, img, pos, offset) =>
+                //{
+                //    Graphics.Draw(quad, img, pos.X, pos.Y, 0, 1, 1, offset.X, offset.Y);
+                //}, reg.Rect, reg.Rect.Location + drawRect.Location);
+                //Graphics.Rectangle(DrawMode.Line, reg.Rect.DefLocation(reg.Rect.Location + drawRect.Location));
             }
 
             Graphics.SetColor(Color.White);
