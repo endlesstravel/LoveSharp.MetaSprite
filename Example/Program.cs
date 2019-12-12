@@ -181,10 +181,19 @@ namespace Example
         }
 
         Shader reaptedShader = Graphics.NewShader(@"
-    uniform vec4 texture_rect;
+   uniform vec4 texture_rect;
+   uniform vec2 repeat_num;
    vec4 effect( vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords )
     {
-        vec4 texcolor = Texel(tex, vec2(texture_rect.x + texture_rect.z *screen_coords.x/love_ScreenSize.x, texture_rect.y + texture_rect.w * screen_coords.y/love_ScreenSize.y));
+        float rw = texture_rect.z;
+        float rh = texture_rect.w;
+        float sub_w = texture_coords.x - texture_rect.x;
+        float sub_h = texture_coords.y - texture_rect.y;
+        vec4 texcolor = Texel(tex, vec2(
+            texture_rect.x + mod(sub_w * repeat_num.x, rw), 
+            texture_rect.y + mod(sub_h * repeat_num.y, rh)
+        ));
+        //texcolor = Texel(tex, texture_coords);
         return texcolor * color;
     }
 ");
@@ -205,7 +214,6 @@ namespace Example
             // draw no changed l-t/r-t/l-b/rb
             foreach (var regIndex in new int[] {0, 2, 6, 8 })
             {
-                break;
                 var reg = qlist[regIndex];
                 var draw_rect = ddfrList[regIndex];
                 ani.DrawSubRegion((quad, img, pos, offset) =>
@@ -216,18 +224,24 @@ namespace Example
 
             // draw scaled pic
             Graphics.SetShader(reaptedShader);
-            //foreach (var regIndex in new int[] { 1, 7, 3, 5, 4 })
-            foreach (var regIndex in new int[] {  4 })
+            foreach (var regIndex in new int[] {
+                1, 7, 3, 5,
+                4 })
             {
                 var reg = qlist[regIndex];
                 var draw_rect = ddfrList[regIndex];
                 var vvp = reg.quad.GetViewport();
-                reaptedShader.SendVector4("texture_rect", new Vector4(vvp.X, vvp.Y, vvp.Width, vvp.Height));
                 ani.DrawSubRegion((quad, img, pos_offset, offset) =>
                 {
-                    //img.SetWrap(WrapMode.Repeat, WrapMode.Repeat);
                     var scaleX = draw_rect.Width / reg.Rect.Width;
                     var scaleY = draw_rect.Height / reg.Rect.Height;
+
+                    reaptedShader.SendVector4("texture_rect", new Vector4(
+                        vvp.X / img.GetWidth(), vvp.Y / img.GetHeight(), 
+                        (vvp.Width) / img.GetWidth(), 
+                        (vvp.Height) / img.GetHeight()));
+                    reaptedShader.SendVector2("repeat_num", new Vector2(scaleX, scaleY));
+
                     Graphics.Draw(quad, img, 
                         draw_rect.Location.X + pos_offset.X * scaleX, 
                         draw_rect.Location.Y + pos_offset.Y * scaleY, 
