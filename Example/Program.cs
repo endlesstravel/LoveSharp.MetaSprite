@@ -125,34 +125,55 @@ namespace Example
                 WindowWidth = 1000,
                 WindowHeight = 800,
             });
-            Boot.Run(new BtnSubAreaTest2());
             Boot.Run(new BtnSubAreaTest());
             Boot.Run(new Program());
         }
     }
 
 
-    public class BtnSubAreaTest2 : Scene
-    {
-        readonly SpriteAnimation ani = SpriteAnimation.New("examples/ui_menu_option.aseprite", "selected");
-        //readonly SpriteAnimation ani = SpriteAnimation.New("examples/ui_menu_option.aseprite", "normal");
 
+    class AniMetaSpriteButton
+    {
+        readonly SpriteAnimation ani;
+        readonly SpriteAnimationSubarea[] qlist;
+        public AniMetaSpriteButton(string path)
+        {
+            ani = SpriteAnimation.New(path, "normal");
+            ani.TryGetCurrentFrameRect("text", out var contentRect);
+            var aniRect = new RectangleF(0, 0, ani.Width, ani.Height);
+
+            if (SplitNine(aniRect, contentRect, out var nineRectList) == false)
+            {
+                Log.Warnning("error nine button of " + path);
+            }
+
+            qlist = nineRectList.Select(item => ani.GenSubRegionQuad(item)).ToArray();
+        }
 
         /// <summary>
+        /// split rect by other center rect<para></para>
         /// [0] [1] [2]<para></para>
         /// [3] [4] [5]<para></para>
         /// [6] [7] [8]<para></para>
         /// </summary>
-        public static RectangleF[] SplitNine(RectangleF rect, RectangleF originalCenterRect)
+        public static bool SplitNine(RectangleF rect, RectangleF centerRect, out RectangleF[] result)
         {
-            var centerRect = originalCenterRect.DefLocation(rect.Location + originalCenterRect.Location);
+            var offsetedCenterRect = centerRect.DefLocation(rect.Location + centerRect.Location);
 
-            float left_x = rect.Left, middle_x = centerRect.Left, right_x = centerRect.Right;
-            float top_y = rect.Top, middle_y = centerRect.Top, bottom_y = centerRect.Bottom;
-            float left_w = originalCenterRect.Left, middle_w = centerRect.Width, right_w = rect.Right - centerRect.Right;
-            float top_h = originalCenterRect.Top, middle_h = centerRect.Height, bottom_h = rect.Bottom - centerRect.Bottom;
 
-            var rectList = new RectangleF[]
+            if (!rect.Contains(offsetedCenterRect.Location) || !rect.Contains(new Vector2(offsetedCenterRect.Right, offsetedCenterRect.Bottom)))
+            {
+                result = new RectangleF[9];
+                return false;
+            }
+
+
+            float left_x = rect.Left, middle_x = offsetedCenterRect.Left, right_x = offsetedCenterRect.Right;
+            float top_y = rect.Top, middle_y = offsetedCenterRect.Top, bottom_y = offsetedCenterRect.Bottom;
+            float left_w = centerRect.Left, middle_w = offsetedCenterRect.Width, right_w = rect.Right - offsetedCenterRect.Right;
+            float top_h = centerRect.Top, middle_h = offsetedCenterRect.Height, bottom_h = rect.Bottom - offsetedCenterRect.Bottom;
+
+            result = new RectangleF[]
             {
                 new RectangleF(left_x, top_y, left_w, top_h), // left - top
                 new RectangleF(middle_x, top_y, middle_w, top_h), // middle - top
@@ -166,19 +187,24 @@ namespace Example
                 new RectangleF(middle_x, bottom_y, middle_w, bottom_h), // middle - bottom
                 new RectangleF(right_x, bottom_y, right_w, bottom_h), // right - bottom
             };
-
-            return rectList;
+            return true;
         }
 
-        SpriteAnimationSubarea[] qlist;
-        public override void Load()
-        {
-            base.Load();
-            ani.TryGetCurrentFrameRect("text", out var contentRect);
-            var aniRect = new RectangleF(0, 0, ani.Width, ani.Height);
+        /// <summary>
+        /// Vertical side repeat
+        /// </summary>
+        public bool VerticalSideRepeatMode = false;
 
-            qlist = SplitNine(aniRect, contentRect).Select(item => ani.GenSubRegionQuad(item)).ToArray();
-        }
+        /// <summary>
+        /// Horizontal side repeat
+        /// </summary>
+        public bool HorizontalSideRepeatMode = false;
+
+        /// <summary>
+        /// center use repeat
+        /// </summary>
+        public bool CenterRepeatMode = false;
+
 
         Shader reaptedShader = Graphics.NewShader(@"
    uniform vec4 texture_rect;
@@ -197,147 +223,147 @@ namespace Example
         return texcolor * color;
     }
 ");
-        public override void Draw()
+        public void Draw(RectangleF drawRect)
         {
-            Graphics.Clear(Color.IndianRed);
-            var drawRect = new RectangleF(10, 10, 200, 100);
-
-            float scaleToDraw = 4;
-            Graphics.Push();
-            Graphics.Scale(scaleToDraw);
-            Graphics.SetLineWidth(1 / scaleToDraw);
-
-            var ddfrList = SplitNine(drawRect, new RectangleF(qlist[4].Rect.Location, 
-                new SizeF(drawRect.Width - qlist[6].Rect.Width - qlist[8].Rect.Width,
-                drawRect.Height - qlist[2].Rect.Height - qlist[8].Rect.Height)
-                ));
-            // draw no changed l-t/r-t/l-b/rb
-            foreach (var regIndex in new int[] {0, 2, 6, 8 })
+            void drawScaled(Quad quad, Image img, Vector2 pos, Vector2 pos_offset, Vector2 offset, Vector2 scale)
             {
-                var reg = qlist[regIndex];
-                var draw_rect = ddfrList[regIndex];
-                //ani.DrawSubRegion((quad, img, pos, offset) =>
-                //{
-                //    Graphics.Draw(quad, img, pos.X, pos.Y, 0, 1, 1, offset.X, offset.Y);
-                //}, reg.Rect, draw_rect.Location);
-                ani.DrawSubRegion((quad, img, pos_offset, offset) =>
-                {
-                    var pos = draw_rect.Location;
-                    Graphics.Draw(quad, img, pos.X + pos_offset.X, pos.Y + pos_offset.Y, 0, 1, 1, offset.X, offset.Y);
-                }, reg.Rect);
+                Graphics.Draw(quad, img,
+                    pos.X + pos_offset.X * scale.X,
+                    pos.Y + pos_offset.Y * scale.Y,
+                    0, scale.X, scale.Y, offset.X, offset.Y);
             }
-
-            // draw scaled pic
-            Graphics.SetShader(reaptedShader);
-            foreach (var regIndex in new int[] {
-                1, 7, 3, 5,
-                4 })
+            void drawUnscaled(Quad quad, Image img, Vector2 pos, Vector2 pos_offset, Vector2 offset)
             {
-                var reg = qlist[regIndex];
-                var draw_rect = ddfrList[regIndex];
-                var vvp = reg.quad.GetViewport();
-                ani.DrawSubRegion((quad, img, pos_offset, offset) =>
-                {
-                    var scaleX = draw_rect.Width / reg.Rect.Width;
-                    var scaleY = draw_rect.Height / reg.Rect.Height;
-
-                    reaptedShader.SendVector4("texture_rect", new Vector4(
-                        vvp.X / img.GetWidth(), vvp.Y / img.GetHeight(), 
-                        (vvp.Width) / img.GetWidth(), 
-                        (vvp.Height) / img.GetHeight()));
-                    reaptedShader.SendVector2("repeat_num", new Vector2(scaleX, scaleY));
-
-                    Graphics.Draw(quad, img, 
-                        draw_rect.Location.X + pos_offset.X * scaleX, 
-                        draw_rect.Location.Y + pos_offset.Y * scaleY, 
-                        0, scaleX, scaleY, offset.X, offset.Y);
-                }, reg.Rect);
+                Graphics.Draw(quad, img, pos.X + pos_offset.X, pos.Y + pos_offset.Y, 0, 1, 1, offset.X, offset.Y);
             }
-            Graphics.SetShader(); ;
-
-
-            Graphics.SetColor(Color.White);
-            foreach (var reg in qlist.Skip(0).Take(9))
-            {
-                break;
-                ////ani.DrawSubRegion(reg.Rect, reg.Rect.X, reg.Rect.Y);
-                //ani.DrawSubRegion((quad, img, pos, offset) =>
-                //{
-                //    Graphics.Draw(quad, img, pos.X, pos.Y, 0, 1, 1, offset.X, offset.Y);
-                //}, reg.Rect, reg.Rect.Location + drawRect.Location);
-                //Graphics.Rectangle(DrawMode.Line, reg.Rect.DefLocation(reg.Rect.Location + drawRect.Location));
-            }
-
-            Graphics.SetColor(Color.White);
-            foreach (var reg in ddfrList.Take(9))
-            {
-                Graphics.Rectangle(DrawMode.Line, reg);
-            }
-            Graphics.Pop();
-
+            Draw(drawRect, drawScaled, drawUnscaled);
         }
-    }
 
+
+        public void Draw(RectangleF drawRect,
+            Action<Quad, Image, Vector2, Vector2, Vector2, Vector2> sacledDraw,
+            Action<Quad, Image, Vector2, Vector2, Vector2> unsacledDraw
+            )
+        {
+            if (SplitNine(drawRect, new RectangleF(qlist[4].Rect.Location,
+                 new SizeF(drawRect.Width - qlist[6].Rect.Width - qlist[8].Rect.Width,
+                 drawRect.Height - qlist[2].Rect.Height - qlist[8].Rect.Height)), out var drawedNineRectList) == false)
+            {
+                Log.Warnning("too small draw area " + this);
+                return;
+            }
+
+            void DrawSubArea(int regIndex, bool isScaled, bool repeated)
+            {
+                if (isScaled)
+                {
+                    if (repeated)
+                    {
+                        Shader oldShader = Graphics.GetShader();
+                        Graphics.SetShader(reaptedShader);
+
+                        var reg = qlist[regIndex];
+                        var draw_rect = drawedNineRectList[regIndex];
+                        var vvp = reg.quad.GetViewport();
+                        ani.DrawSubRegion((quad, img, pos_offset, offset) =>
+                        {
+                            var scaleX = draw_rect.Width / reg.Rect.Width;
+                            var scaleY = draw_rect.Height / reg.Rect.Height;
+
+                            reaptedShader.SendVector4("texture_rect", new Vector4(
+                                vvp.X / img.GetWidth(), vvp.Y / img.GetHeight(),
+                                (vvp.Width) / img.GetWidth(),
+                                (vvp.Height) / img.GetHeight()));
+                            reaptedShader.SendVector2("repeat_num", new Vector2(scaleX, scaleY));
+                            sacledDraw?.Invoke(quad, img, draw_rect.Location, pos_offset, offset, new Vector2(scaleX, scaleY));
+                            //Graphics.Draw(quad, img,
+                            //    draw_rect.Location.X + pos_offset.X * scaleX,
+                            //    draw_rect.Location.Y + pos_offset.Y * scaleY,
+                            //    0, scaleX, scaleY, offset.X, offset.Y);
+                        }, reg.Rect);
+                        Graphics.SetShader(oldShader);
+                    }
+                    else
+                    {
+                        var reg = qlist[regIndex];
+                        var draw_rect = drawedNineRectList[regIndex];
+                        var vvp = reg.quad.GetViewport();
+                        ani.DrawSubRegion((quad, img, pos_offset, offset) =>
+                        {
+                            var scaleX = draw_rect.Width / reg.Rect.Width;
+                            var scaleY = draw_rect.Height / reg.Rect.Height;
+                            sacledDraw?.Invoke(quad, img, draw_rect.Location, pos_offset, offset, new Vector2(scaleX, scaleY));
+                        }, reg.Rect);
+                    }
+                }
+                else
+                {
+                    var reg = qlist[regIndex];
+                    var draw_rect = drawedNineRectList[regIndex];
+                    ani.DrawSubRegion((quad, img, pos_offset, offset) =>
+                    {
+                        unsacledDraw?.Invoke(quad, img, draw_rect.Location, pos_offset, offset);
+                        //Graphics.Draw(quad, img, pos.X + pos_offset.X, pos.Y + pos_offset.Y, 0, 1, 1, offset.X, offset.Y);
+                    }, reg.Rect);
+                }
+            }
+
+
+            // draw no changed l-t/r-t/l-b/rb
+            foreach (var regIndex in new int[] { 0, 2, 6, 8 })
+            {
+                DrawSubArea(regIndex, false, false);
+            }
+
+            // draw scaled pic vertical
+            foreach (var regIndex in new int[] { 1, 7 })
+            {
+                DrawSubArea(regIndex, true, VerticalSideRepeatMode);
+            }
+            // draw scaled pic horizontal
+            foreach (var regIndex in new int[] { 3, 5 })
+            {
+                DrawSubArea(regIndex, true, HorizontalSideRepeatMode);
+            }
+
+            // draw center
+            foreach (var regIndex in new int[] { 4 })
+            {
+                DrawSubArea(regIndex, true, CenterRepeatMode);
+            }
+        }
+
+    }
 
     public class BtnSubAreaTest : Scene
     {
-        readonly SpriteAnimation ani = SpriteAnimation.New("examples/ui_menu_option.aseprite", "selected");
-        //readonly SpriteAnimation ani = SpriteAnimation.New("examples/ui_menu_option.aseprite", "normal");
-
-        SpriteAnimationSubarea[] qlist;
-        public override void Load()
-        {
-            base.Load();
-            ani.TryGetCurrentFrameRect("text", out var contentRect);
-            var aniRect = new RectangleF(0, 0, ani.Width, ani.Height);
-
-            float left_x = 0, middle_x = contentRect.Left, right_x = contentRect.Right;
-            float top_y = 0, middle_y = contentRect.Top, bottom_y = contentRect.Bottom;
-            float left_w = contentRect.Left, middle_w = contentRect.Width, right_w = aniRect.Right - contentRect.Right;
-            float top_h = contentRect.Top, middle_h = contentRect.Height, bottom_h = aniRect.Bottom - contentRect.Bottom;
-
-            var rectList = new RectangleF[]
-            {
-                new RectangleF(left_x, top_y, left_w, top_h), // left - top
-                new RectangleF(middle_x, top_y, middle_w, top_h), // middle - top
-                new RectangleF(right_x, top_y, right_w, top_h), // right - top
-                
-                new RectangleF(left_x, middle_y, left_w, middle_h), // left - middle
-                new RectangleF(middle_x, middle_y, middle_w, middle_h), // middle - middle
-                new RectangleF(right_x, middle_y, right_w, middle_h), // right - middle
-                
-                new RectangleF(left_x, bottom_y, left_w, bottom_h), // left - bottom
-                new RectangleF(middle_x, bottom_y, middle_w, bottom_h), // middle - bottom
-                new RectangleF(right_x, bottom_y, right_w, bottom_h), // right - bottom
-            };
-            qlist = rectList.Select(item => ani.GenSubRegionQuad(item)).ToArray();
-        }
+        readonly AniMetaSpriteButton ani = new AniMetaSpriteButton("examples/ui_menu_option.aseprite");
 
         public override void Draw()
         {
             Graphics.Clear(Color.IndianRed);
-            var drawRect = new RectangleF(100, 100, 200, 200);
+            float scaleF = 4;
+            var drawRect = new RectangleF(20, 20, 140, 70);
 
             Graphics.Push();
-            Graphics.Scale(8);
+            Graphics.Scale(scaleF);
             Graphics.SetColor(Color.Green);
-            Graphics.SetLineWidth(1/8f);
             Graphics.SetColor(Color.White);
 
-            //ani.Draw(0, 0);
-            ani.Draw((quad, img, offset)=> {
-                Graphics.Draw(quad, img, 0, 0, 0, 1, 1, offset.X, offset.Y);
-            });
+            ani.Draw(drawRect);
+            Graphics.SetLineWidth(1 / scaleF);
+            Graphics.Rectangle(DrawMode.Line, drawRect);
+            Graphics.SetLineWidth(1);
 
-            foreach (var reg in qlist.Skip(0).Take(9))
-            {
-                //ani.DrawSubRegion(reg.Rect, reg.Rect.X, reg.Rect.Y);
-                //ani.DrawSubRegion((quad, img, pos, offset) =>
-                //{
-                //    Graphics.Draw(quad, img, pos.X, pos.Y, 0, 1, 1, offset.X, offset.Y);
-                //}, reg.Rect, reg.Rect.Location);
-                Graphics.Rectangle(DrawMode.Line, reg.Rect);
-            }
+            //foreach (var reg in qlist.Skip(0).Take(9))
+            //{
+            //    //ani.DrawSubRegion(reg.Rect, reg.Rect.X, reg.Rect.Y);
+            //    //ani.DrawSubRegion((quad, img, pos, offset) =>
+            //    //{
+            //    //    Graphics.Draw(quad, img, pos.X, pos.Y, 0, 1, 1, offset.X, offset.Y);
+            //    //}, reg.Rect, reg.Rect.Location);
+            //    Graphics.Rectangle(DrawMode.Line, reg.Rect);
+            //}
             Graphics.Pop();
 
             //Graphics.SetLineWidth(1);
