@@ -23,7 +23,7 @@ namespace Example
 
         public void Reset(string path)
         {
-            ani = ASEImporter.Import(path, null);
+            ani = SpriteAnimation.New(path, null);
             aniCloned = ani.Clone();
 
             ani.FramePassed += (name, index) =>
@@ -125,8 +125,8 @@ namespace Example
                 WindowWidth = 1000,
                 WindowHeight = 800,
             });
-            Boot.Run(new BtnSubAreaTest());
             Boot.Run(new Program());
+            Boot.Run(new BtnSubAreaTest());
         }
     }
 
