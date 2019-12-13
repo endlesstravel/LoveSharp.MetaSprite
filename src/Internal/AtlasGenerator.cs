@@ -37,7 +37,8 @@ namespace MetaSprite.Internal {
                         for (int cy = 0; cy < cel.height; ++cy) {
                             for (int cx = 0; cx < cel.width; ++cx) {
                                 var c = cel.GetPixelRaw(cx, cy);
-                                if (c.Af != 0f) {
+                                var cAlpha = BlendeModeAnalysis.DocColor.rgba_geta(c);
+                                if (cAlpha != 0f) {
                                     var x = cx + cel.x;
                                     var y = cy + cel.y;
                                     if (0 <= x && x < file.width &&
@@ -49,10 +50,8 @@ namespace MetaSprite.Internal {
                                         //color.Rf /= color.Af;
                                         //color.Gf /= color.Af;
                                         //color.Bf /= color.Af;
-                                        var color = BlendeModeAnalysis.ConvertTo(BlendeModeAnalysis.GetBlendFunc(layer.blendMode)(
-                                            BlendeModeAnalysis.ConvertTo(lastColor),
-                                            BlendeModeAnalysis.ConvertTo(c),
-                                            c.a));
+                                        var color = BlendeModeAnalysis.GetBlendFunc(layer.blendMode)(
+                                            lastColor, c,  cAlpha);
 
                                         image.SetPixel(x, y, color);
 
@@ -104,7 +103,7 @@ namespace MetaSprite.Internal {
                         //textureData[texX + texY * packResult.imageSize] = image.GetPixel(x, y);
                         int texX = (x - image.minx) + pos.x;
                         int texY = (y - image.miny) + pos.y;
-                        textureData[texX + texY * packResult.imageSize] = image.GetPixel(x, y);
+                        textureData[texX + texY * packResult.imageSize] = BlendeModeAnalysis.ConvertTo(image.GetPixel(x, y));
                     }
                 }
             }
@@ -203,18 +202,18 @@ namespace MetaSprite.Internal {
 
             public readonly int width, height;
 
-            readonly Color[] data;
+            readonly uint[] data;
 
             public FrameImage(int width, int height) {
                 this.width = width;
                 this.height = height;
-                data = new Color[this.width * this.height];
-                for (int i = 0; i < data.Length; ++i) {
-                    data[i].a = 0;
-                }
+                data = new uint[this.width * this.height];
+                //for (int i = 0; i < data.Length; ++i) {
+                //    data[i].a = 0;
+                //}
             }
 
-            public Color GetPixel(int x, int y) {
+            public uint GetPixel(int x, int y) {
                 int idx = y * width + x;
                 if (idx < 0 || idx >= data.Length) {
                     throw new Exception(string.Format("Pixel read of range! x: {0}, y: {1} where w: {2}, h: {3}", x, y, width, height));
@@ -222,7 +221,7 @@ namespace MetaSprite.Internal {
                 return data[idx];
             }
 
-            public void SetPixel(int x, int y, Color color) {
+            public void SetPixel(int x, int y, uint color) {
                 data[y * width + x] = color;
             }
 

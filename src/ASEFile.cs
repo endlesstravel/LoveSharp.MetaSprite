@@ -136,7 +136,7 @@ public class LayerParam {
 }
 
 public class Cel: UserDataAcceptor {
-    static readonly Color Opaque = new Color(0, 0, 0, 0);
+    static readonly uint Opaque = 0;
 
     public int layerIndex;
 
@@ -148,15 +148,15 @@ public class Cel: UserDataAcceptor {
     internal CelType type;
     internal int linkedCel; // -1 if is raw cel, otherwise linked cel
 
-    internal Color[] colorBuffer;
+    internal uint[] colorBuffer;
 
     // Get the color of the cel in cel space
-    public Color GetPixelRaw(int x, int y) {
+    public uint GetPixelRaw(int x, int y) {
         return colorBuffer[y * width + x];
     }
 
     // Get the color of the cel in sprite image space
-    public Color GetPixel(int x, int y) {
+    public uint GetPixel(int x, int y) {
         var relx = x - this.x;
         var rely = y - this.y;
         if (0 <= relx && relx < width &&
@@ -411,7 +411,9 @@ public static class ASEParser {
                 foreach (var cel in frame.cels.Values) {
                     if (cel.type != CelType.Linked) {
                         for(int i = 0; i < cel.colorBuffer.Length; ++i) {
-                            cel.colorBuffer[i].Af *= cel.opacity * file.FindLayer(cel.layerIndex).opacity;
+                            byte a = BlendeModeAnalysis.DocColor.rgba_geta(cel.colorBuffer[i]);
+                            a = (byte)(a * cel.opacity * file.FindLayer(cel.layerIndex).opacity);
+                            BlendeModeAnalysis.DocColor.rgba_seta(ref cel.colorBuffer[i], a);
                         }
                     }
                 }
@@ -457,20 +459,20 @@ public static class ASEParser {
         return Encoding.UTF8.GetString(chars);
     }
 
-    static Color[] ToColorBufferRGBA(byte[] bytes) {
+    static uint[] ToColorBufferRGBA(byte[] bytes) {
         if (bytes.Length % 4 != 0) {
             _Error("Invalid color data");
         }
 
-        var arr = new Color[bytes.Length / 4];
+        var arr = new uint[bytes.Length / 4];
         for (int i = 0; i < arr.Length; ++i) {
             var offset = i << 2;
 
-            Color color = Color.White;
-            color.Rf = bytes[offset] / 255.0f;
-            color.Gf = bytes[offset + 1] / 255.0f;
-            color.Bf = bytes[offset + 2] / 255.0f;
-            color.Af = bytes[offset + 3] / 255.0f;
+            uint color = BlendeModeAnalysis.DocColor.rgba(
+            bytes[offset],
+            bytes[offset + 1],
+            bytes[offset + 2],
+            bytes[offset + 3]);
 
             arr[i] = color;
         }

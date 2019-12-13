@@ -530,6 +530,30 @@ namespace MetaSprite
                 return (uint8_t)((c >> (int)rgba_a_shift) & 0xff);
             }
 
+            public static void rgba_setr(ref uint32_t c, uint8_t r)
+            {
+                c &= (~rgba_r_mask); // clean
+                c |= ((uint)r << (int)rgba_r_shift); // set
+            }
+
+            public static void rgba_setg(ref uint32_t c, uint8_t g)
+            {
+                c &= (~rgba_g_mask); // clean
+                c |= ((uint)g << (int)rgba_g_shift); // set
+            }
+
+            public static void rgba_setb(ref uint32_t c, uint8_t b)
+            {
+                c &= (~rgba_b_mask); // clean
+                c |= ((uint)b << (int)rgba_b_shift); // set
+            }
+
+            public static void rgba_seta(ref uint32_t c, uint8_t a)
+            {
+                c &= (~rgba_a_mask); // clean
+                c |= ((uint)a << (int)rgba_a_shift); // set
+            }
+
             public static uint32_t rgba(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
             {
                 return ((r << (int)rgba_r_shift) |
