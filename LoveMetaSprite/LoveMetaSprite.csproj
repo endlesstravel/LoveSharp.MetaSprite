@@ -53,6 +53,9 @@
     <Compile Include="..\src\ASEImporter.cs">
       <Link>ASEImporter.cs</Link>
     </Compile>
+    <Compile Include="..\src\BlendModeAnalysis.cs">
+      <Link>BlendModeAnalysis.cs</Link>
+    </Compile>
     <Compile Include="..\src\Internal\AtlasGenerator.cs">
       <Link>Internal\AtlasGenerator.cs</Link>
     </Compile>

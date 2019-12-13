@@ -44,11 +44,15 @@ namespace MetaSprite.Internal {
                                         0 <= y && y < file.height) { // Aseprite allows some pixels out of bounds to be kept, ignore them
                                         var lastColor = image.GetPixel(x, y);
                                         // blending
-                                        var color = FunctionBoost.Color_Lerp(lastColor, c, c.Af);
-                                        color.Af = lastColor.Af + c.Af * (1 - lastColor.Af);
-                                        color.Rf /= color.Af;
-                                        color.Gf /= color.Af;
-                                        color.Bf /= color.Af;
+                                        //var color = FunctionBoost.Color_Lerp(lastColor, c, c.Af);
+                                        //color.Af = lastColor.Af + c.Af * (1 - lastColor.Af);
+                                        //color.Rf /= color.Af;
+                                        //color.Gf /= color.Af;
+                                        //color.Bf /= color.Af;
+                                        var color = BlendeModeAnalysis.ConvertTo(BlendeModeAnalysis.GetBlendFunc(layer.blendMode)(
+                                            BlendeModeAnalysis.ConvertTo(lastColor),
+                                            BlendeModeAnalysis.ConvertTo(c),
+                                            c.a));
 
                                         image.SetPixel(x, y, color);
 
