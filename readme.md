@@ -1,4 +1,6 @@
 Inspired by
+https://github.com/WeAthFoLD/MetaSprite
+https://github.com/Seanba/Aseprite2Unity
 
 MetaSprite is an library that lets you import Aseprite's .ase file into Unity, Love2DCS.
 
