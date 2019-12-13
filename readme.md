@@ -13,6 +13,16 @@ using MetaSprite;
     class Program : Scene
     {
         SpriteAnimation ani = SpriteAnimation.New("example.ase", "idle");
+        public override void Load()
+        {
+            ani.FramePassed += (name, index) =>
+            {
+                if (index == ani.FrameCount - 1)
+                {
+                    Console.WriteLine($"{path} - [{name}]     end");
+                }
+            };
+        }
         public override void Update(float dt)
         {
             // ani.SetTag("attack");
