@@ -121,7 +121,7 @@ namespace MetaSprite {
                     if (processor != null) {
                         processor.Process(context, layer);
                     } else {
-                        Log.Warnning(string.Format("No processor for meta layer {0}", layer.layerName));                        
+                        Log.Warnning($"No processor for meta layer {layer.layerName}           \t {path}");                        
                     }
                 });
 

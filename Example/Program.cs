@@ -26,12 +26,12 @@ namespace Example
             ani = SpriteAnimation.New(path, null);
             aniCloned = ani.Clone();
 
-            ani.FramePassed += (name, index) =>
+            ani.FramePassed += (index) =>
             {
                 if (index == ani.FrameCount - 1)
                 {
                     ToNextTag();
-                    Console.WriteLine($"{path} - [{name}]     end");
+                    Console.WriteLine($"{path} - [{ani.TagName}]     end");
                 }
             };
             tagNameList.Clear();

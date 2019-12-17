@@ -135,7 +135,7 @@ namespace MetaSprite
         /// In the case that we're attempting to switch to the animation currently playing,
         /// nothing will happen.
         /// </summary>
-        public void SetTagimmediately(string tagName)
+        public void SetTagImmediately(string tagName)
         {
             wantToChangedTag = null;
             ReallySetTag(tagName, wantToChangedTagReverseMode);
@@ -169,6 +169,7 @@ namespace MetaSprite
         }
 
         /// <summary>
+        /// !!! This function will wait unit Update called to adjust to change. !!!
         /// Jump to a particular frame index in the current animation.
         /// Errors if the frame is outside the tag's frame range.
         /// </summary>
@@ -180,6 +181,24 @@ namespace MetaSprite
                 throw new ArgumentOutOfRangeException($"Frame {frame} is out of range of tag '{currentTag.Name}' [0..{currentTag.Frames.Count})");
             }
 
+            wantToSetFrameIndex = frame;
+            wantToSetFrameIndexFlag = true;
+            isNeedStartToCallFrameAction = true;
+        }
+
+        /// <summary>
+        /// Jump to a particular frame index in the current animation.
+        /// Errors if the frame is outside the tag's frame range.
+        /// </summary>
+        /// <param name="frame"></param>
+        public void SetFrameImmediately(int frame)
+        {
+            if (frame < 0 || frame >= FrameCount)
+            {
+                throw new ArgumentOutOfRangeException($"Frame {frame} is out of range of tag '{currentTag.Name}' [0..{currentTag.Frames.Count})");
+            }
+
+            wantToSetFrameIndexFlag = false;
             CurrentFrameIndex = frame;
             TimeElapsed = currentTag.ElapsedStartTimeList[CurrentFrameIndex];
             isNeedStartToCallFrameAction = true;
@@ -293,6 +312,9 @@ namespace MetaSprite
             }
         }
 
+        bool wantToSetFrameIndexFlag = false;
+        int wantToSetFrameIndex = 0;
+
         public int CurrentFrameIndex
         {
             get;
@@ -312,15 +334,20 @@ namespace MetaSprite
         /// </summary>
         public void Update(float dt)
         {
+            if (IsPaused)
+                return;
+
             if (wantToChangedTag != null)
             {
                 ReallySetTag(wantToChangedTag, wantToChangedTagReverseMode);
                 wantToChangedTag = null;
                 wantToChangedTagReverseMode = false;
             }
-
-            if (IsPaused)
-                return;
+            
+            if (wantToSetFrameIndexFlag)
+            {
+                SetFrameImmediately(wantToSetFrameIndex);
+            }
 
             if (dt == 0)
                 return;
@@ -331,10 +358,11 @@ namespace MetaSprite
             if (currentTag == null)
                 throw new Exception("not set tag yet");
 
+
             // invoke ....
             if (isNeedStartToCallFrameAction)
             {
-                FramePassed?.Invoke(currentTag.Name, 0);
+                FramePassed?.Invoke(CurrentFrameIndex);
                 isNeedStartToCallFrameAction = false;
             }
 
@@ -345,7 +373,7 @@ namespace MetaSprite
 
                 foreach (var itemIndex in list)
                 {
-                    FramePassed?.Invoke(currentTag.Name, itemIndex);
+                    FramePassed?.Invoke(itemIndex);
                 }
 
                 // add the remain ....
@@ -371,7 +399,7 @@ namespace MetaSprite
                             break;
 
                         curFrame = itemIndex;
-                        FramePassed?.Invoke(currentTag.Name, itemIndex);
+                        FramePassed?.Invoke(itemIndex);
                         if (itemIndex == lastFrameIndex) // end of frame
                         {
                             break;
@@ -386,7 +414,7 @@ namespace MetaSprite
             }
         }
 
-        public event Action<string, int> FramePassed;
+        public event Action<int> FramePassed;
 
 
         LinkedList<int> ElapsedTimeMoveFrame(int startFrame, float startTime, float dt, bool falg = true)
@@ -441,7 +469,7 @@ namespace MetaSprite
         public void Stop(bool onLast = false)
         {
             IsPaused = true;
-            SetFrame(onLast ? currentTag.Frames.Count - 1 : 0);
+            SetFrameImmediately(onLast ? currentTag.Frames.Count - 1 : 0);
         }
     }
 
