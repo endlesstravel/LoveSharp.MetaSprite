@@ -53,6 +53,9 @@ namespace MetaSprite
         Sprite currentFrame => FrameCount > 0 ? currentTag?.Frames[CurrentFrameIndex] : null;
         public int FrameCount => currentTag?.Frames.Count ?? 0;
         public string TagName => currentTag?.Name;
+        public int RenderingImageAtlasWidth => currentFrame.image.GetWidth();
+        public int RenderingImageAtlasHeight => currentFrame.image.GetHeight();
+        public float CurrentFrameDuration => currentTag.Duration;
         public bool IsPaused { private set; get; }
 
         readonly Dictionary<string, AnimationClip> renderableFrameTagDict;
@@ -362,28 +365,35 @@ namespace MetaSprite
             // invoke ....
             if (isNeedStartToCallFrameAction)
             {
-                FramePassed?.Invoke(CurrentFrameIndex);
+                FrameBegin?.Invoke(CurrentFrameIndex);
                 isNeedStartToCallFrameAction = false;
             }
 
             if (currentTag.loopTime)
             {
                 var lastFrame = CurrentFrameIndex;
-                var list = ElapsedTimeMoveFrame(CurrentFrameIndex, TimeElapsed, dt);
+                ElapsedTimeMoveFrame_LoopMode(CurrentFrameIndex, TimeElapsed, dt,
+                    out var beginFrameList, out var endFrameList);
 
-                foreach (var itemIndex in list)
+                foreach (var itemIndex in beginFrameList)
                 {
-                    FramePassed?.Invoke(itemIndex);
+                    FrameBegin?.Invoke(itemIndex);
+                }
+                foreach (var itemIndex in endFrameList)
+                {
+                    FrameEnd?.Invoke(itemIndex);
                 }
 
+                if (beginFrameList.Count > 0)
+                    CurrentFrameIndex = beginFrameList[beginFrameList.Count - 1];
+
                 // add the remain ....
-                CurrentFrameIndex = list?.Last?.Value ?? CurrentFrameIndex;
                 TimeElapsed += dt;
             }
             else
             {
                 var lastFrameIndex = currentTag.Frames.Count - 1;
-                if (CurrentFrameIndex == lastFrameIndex)
+                if (CurrentFrameIndex == lastFrameIndex && TimeElapsed > currentTag.Duration)
                 {
                     // do nothing ...
 
@@ -391,33 +401,86 @@ namespace MetaSprite
                 else
                 {
                     var curFrame = CurrentFrameIndex;
-                    var list = ElapsedTimeMoveFrame(CurrentFrameIndex, TimeElapsed, dt);
+                    ElapsedTimeMoveFrame_NoLoopMode(CurrentFrameIndex, TimeElapsed, dt,
+                        out var beginFrameList, out var endFrameList);
 
-                    foreach (var itemIndex in list)
+                    foreach (var itemIndex in beginFrameList)
                     {
-                        if (itemIndex <= CurrentFrameIndex) // looped check
-                            break;
-
-                        curFrame = itemIndex;
-                        FramePassed?.Invoke(itemIndex);
-                        if (itemIndex == lastFrameIndex) // end of frame
-                        {
-                            break;
-                        }
+                        FrameBegin?.Invoke(itemIndex);
+                    }
+                    foreach (var itemIndex in endFrameList)
+                    {
+                        FrameEnd?.Invoke(itemIndex);
                     }
 
                     // add the remain ....
-                    CurrentFrameIndex = curFrame;
+                    if (beginFrameList.Count > 0)
+                        CurrentFrameIndex = beginFrameList[beginFrameList.Count - 1];
+
                     TimeElapsed += dt;
                 }
 
             }
         }
 
-        public event Action<int> FramePassed;
+        /// <summary>
+        /// invoked when frame is end
+        /// </summary>
+        public event Action<int> FrameEnd;
+        /// <summary>
+        /// invoked when frame is begin
+        /// </summary>
+        public event Action<int> FrameBegin;
 
 
-        LinkedList<int> ElapsedTimeMoveFrame(int startFrame, float startTime, float dt, bool falg = true)
+        void ElapsedTimeMoveFrame_LoopMode(int startFrame, float startTime, float dt,
+            out List<int> beginFrameResultList, out List<int> endFrameResultList)
+        {
+            // TODO:
+            // 可以通过取余优化
+            var beginFrameList = new List<int>(currentTag.Frames.Count);
+            var endFrameList = new List<int>(currentTag.Frames.Count);
+
+            // 变量获取
+            var elapsedList = currentTag.ElapsedTimeList;
+            var frameList = currentTag.Frames;
+            var frameTotalCount = currentTag.Frames.Count;
+
+            // 帧首部探测
+            var espt = elapsedList[startFrame] - (startTime % currentTag.Duration);
+            if (espt < 0)
+                espt = 0.1f; // for no error
+
+            dt -= espt;
+            if (dt > 0) // 越过首帧，时间增量减去最初的一个 frame 时间
+            {
+                // 增加一帧
+                int currentPassedFrameIndex = (startFrame + 1) % frameTotalCount;
+
+                // dt > 0，确认越过一帧
+                while (dt > 0)
+                {
+                    beginFrameList.Add(currentPassedFrameIndex);
+                    endFrameList.Add((frameTotalCount + currentPassedFrameIndex - 1) % frameTotalCount); // prevent -1 get
+
+                    currentPassedFrameIndex = (currentPassedFrameIndex + 1) % frameTotalCount;
+                    espt = frameList[currentPassedFrameIndex].duration;
+                    if (espt < 0)
+                        espt = 0.1f; // for no error
+
+                    dt -= espt;
+                }
+            }
+
+            // give result
+            beginFrameResultList = beginFrameList;
+            endFrameResultList = endFrameList;
+        }
+
+
+
+        void ElapsedTimeMoveFrame_NoLoopMode(int startFrame, float startTime, float dt, 
+            out List<int> beginFrameResultList, out List<int> endFrameResultList)
         {
             //var odd = endTime % currentTag.Duration;
             //var total = endTime - odd;
@@ -425,38 +488,51 @@ namespace MetaSprite
             //list.AddRange();
             //Mathf.RoundToInt();
 
-            if (falg)
+            // TODO:
+            // 可以通过取余优化
+            var beginFrameList = new List<int>(currentTag.Frames.Count);
+            var endFrameList = new List<int>(currentTag.Frames.Count);
+
+            // 变量获取
+            var elapsedList = currentTag.ElapsedTimeList;
+            var frameList = currentTag.Frames;
+            var frameTotalCount = currentTag.Frames.Count;
+
+            // 帧首部探测
+            var espt = elapsedList[startFrame] - (startTime % currentTag.Duration);
+            if (espt < 0) espt = 0.1f; // for no error
+            dt -= espt;
+
+            if (dt > 0) // 越过首帧，时间增量减去最初的一个 frame 时间
             {
-                var count = ElapsedTimeMoveFrame(startFrame, startTime, dt, false);
-                if (count.Count > 5)
+                // 增加一帧
+                int currentPassedFrameIndex = (startFrame + 1) % frameTotalCount;
+
+                // dt > 0，确认越过一帧
+                // currentPassedFrameIndex > startFrame 确认不能循环到前一帧
+                while (dt > 0 && currentPassedFrameIndex > startFrame)
                 {
-                    Console.Title = "";
+                    beginFrameList.Add(currentPassedFrameIndex);
+                    endFrameList.Add((frameTotalCount + currentPassedFrameIndex - 1) % frameTotalCount); // prevent -1 get
+
+                    currentPassedFrameIndex = (currentPassedFrameIndex + 1) % frameTotalCount;
+                    espt = frameList[currentPassedFrameIndex].duration;
+                    if (espt < 0)
+                        espt = 0.1f; // for no error
+
+                    dt -= espt;
+                }
+
+                // 尾部重确认
+                if (dt > 0 && (currentPassedFrameIndex > startFrame) == false)
+                {
+                    endFrameList.Add(currentTag.Frames.Count - 1);
                 }
             }
 
-            // TODO:
-            // ����ͨ��ȡ���Ż�
-            var list = new LinkedList<int>();
-            var elapsedList = currentTag.ElapsedTimeList;
-            var frameList = currentTag.Frames;
-            var espt = elapsedList[startFrame] - (startTime % currentTag.Duration);
-            if (espt > 0)
-                dt -= espt; // ��ȥ�����һ�� frame ʱ��
-            int index = (startFrame + 1) % elapsedList.Count;
-
-            while (dt > 0)
-            {
-                list.AddLast(index);
-
-                index = (index + 1) % elapsedList.Count;
-                espt = frameList[index].duration;
-                if (espt > 0)
-                    dt -= espt;
-                else
-                    dt -= 0.001f; // for error
-            }
-
-            return list;
+            // give result
+            beginFrameResultList = beginFrameList;
+            endFrameResultList = endFrameList;
         }
 
 

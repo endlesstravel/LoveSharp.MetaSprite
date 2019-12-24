@@ -22,7 +22,7 @@ namespace MetaSprite.Internal {
             public List<PackPos> positions;
         }
 
-        public static List<Sprite> GenerateAtlas(ImportContext ctx, List<Layer> layers, bool densePacked = true, int border = 1) {
+        public static List<Sprite> GenerateAtlas(ImportContext ctx, List<Layer> layers, bool densePacked = true, int border = 8) {
             var file = ctx.file;
 
             var images = file.frames    

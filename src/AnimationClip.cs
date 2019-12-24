@@ -11,8 +11,19 @@ namespace MetaSprite
 
         public IReadOnlyList<Sprite> Frames => spriteFrameList;
         List<Sprite> spriteFrameList = new List<Sprite>();
+
+        /// <summary>
+        /// 这一帧结束时的总时间
+        /// </summary>
         public IReadOnlyList<float> ElapsedTimeList => elapsedTimeList;
+        /// <summary>
+        /// 这一帧开始时的总时间
+        /// </summary>
         public IReadOnlyList<float> ElapsedStartTimeList => elapsedStartTimeList;
+
+        /// <summary>
+        /// 动画总时间
+        /// </summary>
         public float Duration => duration;
         List<float> elapsedTimeList = new List<float>();
         List<float> elapsedStartTimeList = new List<float>();
@@ -69,12 +80,12 @@ namespace MetaSprite
 
         public int FindFrame(float tt)
         {
-            // ���ַ����в���
+            // 二分法进行查找
             var list = ElapsedTimeList;
             var g = tt % list[list.Count - 1];
             int max = list.Count - 1;
 
-            // ���ַ����ң��� timeElased С�� index
+            // 二分法查找，比 timeElased 小的 index
             int l = 0;
             int r = max;
             int m = (l + r) / 2;
