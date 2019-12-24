@@ -1,0 +1,11 @@
+# EditorConfig is awesome: https://EditorConfig.org
+# https://docs.microsoft.com/zh-cn/visualstudio/ide/create-portable-custom-editor-options?view=vs-2019
+# top-most EditorConfig file
+root = true
+
+[*.cs]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+indent_style = space
+indent_size = 4
