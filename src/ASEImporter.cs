@@ -86,7 +86,7 @@ namespace MetaSprite {
         /// <param name="path"></param>
         /// <param name="initTagName">null for random tag</param>
         /// <returns></returns>
-        public static SpriteAnimation Import(string path, string initTagName) {
+        public static AsepriteAnimation Import(string path, string initTagName) {
 
             var context = new ImportContext {
                 // file = file,
@@ -139,7 +139,7 @@ namespace MetaSprite {
             if (initTagName == null)
                 initTagName = dict.Keys.FirstOrDefault();
 
-            return new SpriteAnimation(dict, revsrse_dict, context.file.width, context.file.height, initTagName);
+            return new AsepriteAnimation(dict, revsrse_dict, context.file.width, context.file.height, initTagName);
         }
 
         static void GenerateAnimClips(ImportContext ctx)

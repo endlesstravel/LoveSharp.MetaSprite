@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,8 +10,8 @@ namespace Example
 {
     class Program : Scene
     {
-        SpriteAnimation ani;
-        SpriteAnimation aniCloned;
+        AsepriteAnimation ani;
+        AsepriteAnimation aniCloned;
         List<string> tagNameList = new List<string>();
         int tagNameIndex = 0;
         public void ToNextTag()
@@ -23,7 +23,7 @@ namespace Example
 
         public void Reset(string path)
         {
-            ani = SpriteAnimation.New(path, null);
+            ani = AsepriteAnimation.New(path, null);
             aniCloned = ani.Clone();
 
             ani.FrameBegin += (index) =>
@@ -58,7 +58,7 @@ namespace Example
             Graphics.Line(pos.X, pos.Y - r, pos.X, pos.Y + r);
         }
 
-        public static void Draw(SpriteAnimation ani, Vector2 pos)
+        public static void Draw(AsepriteAnimation ani, Vector2 pos)
         {
             Graphics.SetColor(Color.White);
             ani.Draw(pos.X, pos.Y);
@@ -134,11 +134,11 @@ namespace Example
 
     class AniMetaSpriteButton
     {
-        readonly SpriteAnimation ani;
+        readonly AsepriteAnimation ani;
         readonly RectangleF[] nineRectList;
         public AniMetaSpriteButton(string path)
         {
-            ani = SpriteAnimation.New(path, "hovered");
+            ani = AsepriteAnimation.New(path, "hovered");
             ani.TryGetCurrentFrameRect("text", out var contentRect);
             var aniRect = new RectangleF(0, 0, ani.Width, ani.Height);
 

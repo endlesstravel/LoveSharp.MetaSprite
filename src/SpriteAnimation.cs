@@ -5,10 +5,10 @@ using System;
 
 namespace MetaSprite
 {
-    public class SpriteAnimation
+    public class AsepriteAnimation
     {
         #region 
-        public static SpriteAnimation New(string path, string initTag)
+        public static AsepriteAnimation New(string path, string initTag)
         {
             return ASEImporter.Import(path, initTag);
         }
@@ -16,15 +16,15 @@ namespace MetaSprite
         /// <summary>
         /// clone of this
         /// </summary>
-        public SpriteAnimation Clone()
+        public AsepriteAnimation Clone()
         {
-            return new SpriteAnimation(this);
+            return new AsepriteAnimation(this);
         }
 
         /// <summary>
         /// clone of other
         /// </summary>
-        public SpriteAnimation(SpriteAnimation other)
+        public AsepriteAnimation(AsepriteAnimation other)
         {
             renderableFrameTagDict = other.renderableFrameTagDict;
             reversedRenderableFrameTagDict = other.reversedRenderableFrameTagDict;
@@ -34,7 +34,7 @@ namespace MetaSprite
             Width = other.Width;
             Height = other.Height;
         }
-        public SpriteAnimation(Dictionary<string, AnimationClip> dict, Dictionary<string, AnimationClip> reversedAniDict, int widht, int height, string initialTag)
+        public AsepriteAnimation(Dictionary<string, AnimationClip> dict, Dictionary<string, AnimationClip> reversedAniDict, int widht, int height, string initialTag)
         {
             this.renderableFrameTagDict = dict ?? throw new System.ArgumentNullException(nameof(dict));
             this.reversedRenderableFrameTagDict = reversedAniDict ?? throw new System.ArgumentNullException(nameof(dict));
