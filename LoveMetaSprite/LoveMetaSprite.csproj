@@ -53,6 +53,9 @@
     <Compile Include="..\src\ASEImporter.cs">
       <Link>ASEImporter.cs</Link>
     </Compile>
+    <Compile Include="..\src\AsepriteAnimation.cs">
+      <Link>AsepriteAnimation.cs</Link>
+    </Compile>
     <Compile Include="..\src\BlendModeAnalysis.cs">
       <Link>BlendModeAnalysis.cs</Link>
     </Compile>
@@ -91,9 +94,6 @@
     </Compile>
     <Compile Include="..\src\Sprite.cs">
       <Link>Sprite.cs</Link>
-    </Compile>
-    <Compile Include="..\src\SpriteAnimation.cs">
-      <Link>SpriteAnimation.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
