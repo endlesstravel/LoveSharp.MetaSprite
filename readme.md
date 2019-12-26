@@ -20,7 +20,7 @@ use it by
 using MetaSprite;
     class Program : Scene
     {
-        SpriteAnimation ani = SpriteAnimation.New("example.ase", "idle");
+        AsepriteAnimation ani = AsepriteAnimation.New("example.ase", "idle");
         public override void Load()
         {
             ani.FramePassed += (name, index) =>
