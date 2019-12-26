@@ -28,7 +28,6 @@ namespace MetaSprite
         {
             renderableFrameTagDict = other.renderableFrameTagDict;
             reversedRenderableFrameTagDict = other.reversedRenderableFrameTagDict;
-            eventDict = other.eventDict;
             ReallySetTag(this.TagNameIter.FirstOrDefault(), false);
             IsPaused = false;
 
@@ -36,12 +35,12 @@ namespace MetaSprite
             Height = other.Height;
         }
         public AsepriteAnimation(
-            Dictionary<string, AnimationClip> dict, Dictionary<string, AnimationClip> reversedAniDict, Dictionary<string, List<int>> eventDict,
+            Dictionary<string, AnimationClip> dict, Dictionary<string, AnimationClip> reversedAniDict, 
             int widht, int height, string initialTag)
         {
             this.renderableFrameTagDict = dict ?? throw new System.ArgumentNullException(nameof(dict));
             this.reversedRenderableFrameTagDict = reversedAniDict ?? throw new System.ArgumentNullException(nameof(dict));
-            this.eventDict = eventDict ?? new Dictionary<string, List<int>>();
+
             ReallySetTag(initialTag, false);
             IsPaused = false;
 
@@ -64,7 +63,6 @@ namespace MetaSprite
 
         readonly Dictionary<string, AnimationClip> renderableFrameTagDict;
         readonly Dictionary<string, AnimationClip> reversedRenderableFrameTagDict;
-        readonly Dictionary<string, List<int>> eventDict;
 
         public readonly int Width, Height;
 
@@ -78,16 +76,7 @@ namespace MetaSprite
             return CurrentFrameTransDict.TryGetValue(key, out p);
         }
 
-        public IReadOnlyCollection<string> EventNameIter => eventDict.Keys;
-        public IReadOnlyList<int> TryGetEventFrameList(string name)
-        {
-            if (eventDict.TryGetValue(name, out var list))
-            {
-                return list;
-            }
-
-            return null;
-        }
+        public IReadOnlyCollection<string> CurrentFrameEvent => currentFrame.eventSet;
 
         public IEnumerable<string> CurrentFrameRectKeys => currentFrame.rectDict.Keys;
         public Dictionary<string, RectangleF> CurrentFrameRectDict

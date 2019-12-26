@@ -16,8 +16,8 @@ namespace MetaSprite
 
         public override void Process(ImportContext ctx, Layer layer)
         {
-            var eventFlags = new List<int>();
             var file = ctx.file;
+            var eventFlags = new List<int>(file.frames.Count);
             for (int i = 0; i < file.frames.Count; ++i)
             {
                 file.frames[i].cels.TryGetValue(layer.index, out Cel cel);
@@ -30,16 +30,15 @@ namespace MetaSprite
             if (eventFlags.Count == 0)
                 return;
 
-            var name = layer.GetParamString(0);
+            var eventName = layer.GetParamString(0);
 
-            var evtlist = ctx.eventInfoList;
-            if (evtlist.ContainsKey(name))
+            foreach (var freame in eventFlags)
             {
-                Love.Log.Error($"duplicate event       {name}");
-            }
-            else
-            {
-                evtlist[name] = eventFlags;
+                var sprites = ctx.generatedSprites[freame];
+                if (sprites.eventSet.Add(eventName) == false)
+                {
+                    Love.Log.Error($"duplicate event       {eventName}");
+                }
             }
         }
     }

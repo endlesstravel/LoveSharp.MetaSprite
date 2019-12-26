@@ -16,6 +16,7 @@ namespace MetaSprite
 
         readonly public Dictionary<string, RectangleF> rectDict = new Dictionary<string, RectangleF>();
         readonly public Dictionary<string, Vector2> transDict = new Dictionary<string, Vector2>();
+        readonly public HashSet<string> eventSet = new HashSet<string>();
     }
 
     public static class FunctionBoost

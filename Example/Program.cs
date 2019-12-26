@@ -28,18 +28,11 @@ namespace Example
 
             ani.FrameBegin += (index) =>
             {
-                    Console.WriteLine($"{path} - b - [{index}] / { ani.FrameCount - 1}");
+                Console.WriteLine($"{path} - b - [{index}] / { ani.FrameCount - 1}");
 
-                foreach (var evtName in ani.EventNameIter)
+                foreach (var evtName in ani.CurrentFrameEvent)
                 {
-                    var list = ani.TryGetEventFrameList(evtName);
-                    if (list != null)
-                    {
-                        if (list.Contains(index))
-                        {
-                            Console.WriteLine($"event:   " + evtName);
-                        }
-                    }
+                    Console.WriteLine($"event:   " + evtName);
                 }
             };
             ani.FrameEnd += (index) =>
