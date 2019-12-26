@@ -4,10 +4,18 @@ https://github.com/Seanba/Aseprite2Unity
 
 MetaSprite is an library that lets you import Aseprite's .ase file into Unity, Love2DCS.
 
+
 ![](img/show-case-01.gif)
 ![](img/show-case-02.gif)
 
+support meta:
+* `pivot` : `@pivot()` location the pivot of the sprite
+* `rect` : `@rect("rect_name")` generate rectangle region on each frame
+* `trans` : `@trans("weapon pos")` generate  position on each frame
+* `event` : `@event("event name")` generate event on each frame
+
 use it by
+
 ```C#
 using MetaSprite;
     class Program : Scene

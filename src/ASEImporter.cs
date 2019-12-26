@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System;
@@ -18,6 +18,7 @@ namespace MetaSprite {
         public string fileNameNoExt;
         
         public List<Sprite> generatedSprites = new List<Sprite>();
+        public Dictionary<string, List<int>> eventInfoList = new Dictionary<string, List<int>>();
 
         // The local texture coordinate for bottom-left point of each frame's crop rect, in Unity texture space.
         //public List<Vector2> spriteCropPositions = new List<Vector2>();
@@ -36,6 +37,7 @@ namespace MetaSprite {
             new MetaLayerPivot(),
             new MetaLayerRect(),
             new MetaLayerTransform(),
+            new MetaLayerEvent(),
         }.ToDictionary(item => item.actionName);
 
 
@@ -139,7 +141,7 @@ namespace MetaSprite {
             if (initTagName == null)
                 initTagName = dict.Keys.FirstOrDefault();
 
-            return new AsepriteAnimation(dict, revsrse_dict, context.file.width, context.file.height, initTagName);
+            return new AsepriteAnimation(dict, revsrse_dict, context.eventInfoList, context.file.width, context.file.height, initTagName);
         }
 
         static void GenerateAnimClips(ImportContext ctx)

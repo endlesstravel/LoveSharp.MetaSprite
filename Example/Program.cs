@@ -29,6 +29,18 @@ namespace Example
             ani.FrameBegin += (index) =>
             {
                     Console.WriteLine($"{path} - b - [{index}] / { ani.FrameCount - 1}");
+
+                foreach (var evtName in ani.EventNameIter)
+                {
+                    var list = ani.TryGetEventFrameList(evtName);
+                    if (list != null)
+                    {
+                        if (list.Contains(index))
+                        {
+                            Console.WriteLine($"event:   " + evtName);
+                        }
+                    }
+                }
             };
             ani.FrameEnd += (index) =>
             {
@@ -106,6 +118,7 @@ namespace Example
 
         public override void Update(float dt)
         {
+            //dt /= 5f;
             if (ani != null)
             {
                 ani?.Update(dt);
