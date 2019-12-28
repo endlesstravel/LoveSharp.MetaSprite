@@ -30,7 +30,7 @@ namespace Example
             {
                 Console.WriteLine($"{path} - b - [{index}] / { ani.FrameCount - 1}");
 
-                foreach (var evtName in ani.CurrentFrameEvent)
+                foreach (var evtName in ani.GetFrameEvent(index))
                 {
                     Console.WriteLine($"event:   " + evtName);
                 }

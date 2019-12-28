@@ -35,7 +35,7 @@ namespace MetaSprite
             Height = other.Height;
         }
         public AsepriteAnimation(
-            Dictionary<string, AnimationClip> dict, Dictionary<string, AnimationClip> reversedAniDict, 
+            Dictionary<string, AnimationClip> dict, Dictionary<string, AnimationClip> reversedAniDict,
             int widht, int height, string initialTag)
         {
             this.renderableFrameTagDict = dict ?? throw new System.ArgumentNullException(nameof(dict));
@@ -76,7 +76,15 @@ namespace MetaSprite
             return CurrentFrameTransDict.TryGetValue(key, out p);
         }
 
-        public IReadOnlyCollection<string> CurrentFrameEvent => currentFrame.eventSet;
+        public IReadOnlyCollection<string> GetFrameEvent(int frameIndex)
+        {
+            if (frameIndex < 0 || frameIndex >= FrameCount)
+            {
+                throw new ArgumentOutOfRangeException($"Frame {frameIndex} is out of range of tag '{currentTag.Name}' [0..{currentTag.Frames.Count})");
+            }
+
+            return currentTag.Frames[frameIndex].eventSet;
+        }
 
         public IEnumerable<string> CurrentFrameRectKeys => currentFrame.rectDict.Keys;
         public Dictionary<string, RectangleF> CurrentFrameRectDict
@@ -263,8 +271,8 @@ namespace MetaSprite
         {
             var vpr = ToRect(currentFrame.quad.GetViewport());
             var original_srect = new RectangleF(
-                vpr.X + subArea.X - currentFrame.imgQuadOffset.X, 
-                vpr.Y + subArea.Y - currentFrame.imgQuadOffset.Y,
+                vpr.X + subArea.X - currentFrame.imgQuadOffset.X + currentFrame.spritedPivot.X, 
+                vpr.Y + subArea.Y - currentFrame.imgQuadOffset.Y + currentFrame.spritedPivot.Y,
                 subArea.Width, subArea.Height);
             var srect = RectangleF.Intersect(vpr, original_srect);
             var sub_quad = Graphics.NewQuad(srect.X, srect.Y, srect.Width, srect.Height, currentFrame.image.GetWidth(), currentFrame.image.GetHeight());
@@ -279,7 +287,8 @@ namespace MetaSprite
         {
             if (currentFrame != null)
             {
-                Graphics.Draw(subArea.quad, currentFrame.image, x - subArea.rect.X, y - subArea.rect.Y, rot, sx, sy,
+                Graphics.Draw(subArea.quad, currentFrame.image,
+                    x,  y, rot, sx, sy,
                     (-currentFrame.imgQuadOffset.X + currentFrame.spritedPivot.X) - subArea.offset.X,
                     (-currentFrame.imgQuadOffset.Y + currentFrame.spritedPivot.Y) - subArea.offset.Y
                     );

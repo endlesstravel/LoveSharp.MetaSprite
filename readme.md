@@ -23,11 +23,13 @@ using MetaSprite;
         AsepriteAnimation ani = AsepriteAnimation.New("example.ase", "idle");
         public override void Load()
         {
-            ani.FramePassed += (name, index) =>
+            ani.FrameBegin += (index) =>
             {
-                if (index == ani.FrameCount - 1)
+                Console.WriteLine($"{path} - b - [{index}] / { ani.FrameCount - 1}");
+
+                foreach (var evtName in ani.GetFrameEvent(index))
                 {
-                    Console.WriteLine($"{path} - [{name}]     end");
+                    Console.WriteLine($"event:   " + evtName);
                 }
             };
         }
