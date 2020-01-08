@@ -66,6 +66,18 @@ namespace MetaSprite
 
         public readonly int Width, Height;
 
+        public bool TryGetDuration(string key, out float duration)
+        {
+            duration = 0;
+            if (renderableFrameTagDict.TryGetValue(key, out var acp))
+            {
+                duration = acp.Duration;
+                return true;
+            }
+
+            return false;
+        }
+
         public bool TryGetCurrentFrameRect(string key, out RectangleF r)
         {
             return CurrentFrameRectDict.TryGetValue(key, out r);

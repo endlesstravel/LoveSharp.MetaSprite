@@ -36,5 +36,9 @@ namespace MetaSprite
         {
             return new Vector2(a.X * b.X, a.Y * b.Y);
         }
+        public static Vector2 Vector2_Ceil(Vector2 v)
+        {
+            return new Vector2(Mathf.CeilToInt(v.X), Mathf.CeilToInt(v.Y));
+        }
     }
 }

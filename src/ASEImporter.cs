@@ -97,7 +97,11 @@ namespace MetaSprite {
             };
 
             // parse file
-            context.file = ASEParser.Parse(System.IO.File.ReadAllBytes(path)); 
+            context.file = ASEParser.Parse(System.IO.File.ReadAllBytes(path));
+
+
+            // gen default tag for no tag file
+            GenerateFrameTagForNoTagFile(context);
 
             // generate sprite
             context.generatedSprites = AtlasGenerator.GenerateAtlas(context, 
@@ -141,6 +145,19 @@ namespace MetaSprite {
                 initTagName = dict.Keys.FirstOrDefault();
 
             return new AsepriteAnimation(dict, revsrse_dict, context.file.width, context.file.height, initTagName);
+        }
+
+        public const string DefaultTagName = "_____default_______tag_______name_____";
+        static void GenerateFrameTagForNoTagFile(ImportContext ctx)
+        {
+            if (ctx.file.frameTags.Count == 0)
+            {
+                var defaultTag = new FrameTag();
+                defaultTag.from = 0;
+                defaultTag.to = ctx.file.frames.Count - 1;
+                defaultTag.name = DefaultTagName;
+                ctx.file.frameTags.Add(defaultTag);
+            }
         }
 
         static void GenerateAnimClips(ImportContext ctx)
