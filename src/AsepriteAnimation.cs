@@ -249,6 +249,14 @@ namespace MetaSprite
         /// <summary>
         /// Draw the animation's current frame in a specified location.
         /// </summary>
+        public void Draw(Vector2 pos, float scale)
+        {
+            Draw(pos.X,  pos.Y, 0, scale, scale);
+        }
+
+        /// <summary>
+        /// Draw the animation's current frame in a specified location.
+        /// </summary>
         public void Draw(Action<Quad, Image, Vector2> drawFunc)
         {
             if (currentFrame != null)
