@@ -39,6 +39,11 @@ namespace MetaSprite {
             new MetaLayerEvent(),
         }.ToDictionary(item => item.actionName);
 
+        public static void AddLayerPreocesser(MetaLayerProcessor processor)
+        {
+            layerProcessors.Add(processor.actionName, processor);
+        }
+
 
         //public static void RefresProcessor()
         //{
