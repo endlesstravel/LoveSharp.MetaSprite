@@ -6,7 +6,11 @@ namespace MetaSprite
     public class AnimationClip
     {
         public readonly bool IsReversed;
-        public readonly bool loopTime;
+
+        /// <summary>
+        /// 是否启用循环
+        /// </summary>
+        public bool loopTime;
         public readonly string Name;
 
         public IReadOnlyList<Sprite> Frames => spriteFrameList;

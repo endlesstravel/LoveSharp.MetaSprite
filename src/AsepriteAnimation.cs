@@ -158,6 +158,20 @@ namespace MetaSprite
             wantToChangedTagReverseMode = reverseMode;
         }
 
+        public bool GetLoop(string tagName)
+        {
+            if (tagName == null) throw new Exception("No animation tag specified!");
+            if (renderableFrameTagDict.TryGetValue(tagName, out var ac) == false) throw new Exception($"Tag {tagName} not found in frametags!");
+            return ac.loopTime;
+        }
+
+        public void SetLoop(string tagName, bool loop)
+        {
+            if (tagName == null) throw new Exception("No animation tag specified!");
+            if (renderableFrameTagDict.TryGetValue(tagName, out var ac) == false) throw new Exception($"Tag {tagName} not found in frametags!");
+            ac.loopTime = loop;
+        }
+
         /// <summary>
         /// Switch to a different animation tag.
         /// In the case that we're attempting to switch to the animation currently playing,
@@ -270,8 +284,6 @@ namespace MetaSprite
         }
 
 
-        public static RectangleF ToRect(Viewport vp) => new RectangleF(vp.x, vp.y, vp.w, vp.h);
-        public static Viewport ToViewport(RectangleF r) => new Viewport(r.X, r.Y, r.Width, r.Height);
 
         class SpriteAnimationSubarea
         {
@@ -289,7 +301,7 @@ namespace MetaSprite
         }
         SpriteAnimationSubarea GenSubRegionQuad(RectangleF subArea)
         {
-            var vpr = ToRect(currentFrame.quad.GetViewport());
+            var vpr = (currentFrame.quad.GetViewport());
             var original_srect = new RectangleF(
                 vpr.X + subArea.X - currentFrame.imgQuadOffset.X + currentFrame.spritedPivot.X, 
                 vpr.Y + subArea.Y - currentFrame.imgQuadOffset.Y + currentFrame.spritedPivot.Y,
@@ -395,11 +407,13 @@ namespace MetaSprite
             if (currentTag == null)
                 throw new Exception("not set tag yet");
 
+            string currentExecuteTagName = currentTag.Name;
+
 
             // invoke ....
             if (isNeedStartToCallFrameAction)
             {
-                FrameBegin?.Invoke(CurrentFrameIndex);
+                FrameBegin?.Invoke(currentExecuteTagName, CurrentFrameIndex);
                 isNeedStartToCallFrameAction = false;
             }
 
@@ -411,11 +425,11 @@ namespace MetaSprite
 
                 foreach (var itemIndex in beginFrameList)
                 {
-                    FrameBegin?.Invoke(itemIndex);
+                    FrameBegin?.Invoke(currentExecuteTagName, itemIndex);
                 }
                 foreach (var itemIndex in endFrameList)
                 {
-                    FrameEnd?.Invoke(itemIndex);
+                    FrameEnd?.Invoke(currentExecuteTagName, itemIndex);
                 }
 
                 if (beginFrameList.Count > 0)
@@ -440,11 +454,11 @@ namespace MetaSprite
 
                     foreach (var itemIndex in beginFrameList)
                     {
-                        FrameBegin?.Invoke(itemIndex);
+                        FrameBegin?.Invoke(currentExecuteTagName, itemIndex);
                     }
                     foreach (var itemIndex in endFrameList)
                     {
-                        FrameEnd?.Invoke(itemIndex);
+                        FrameEnd?.Invoke(currentExecuteTagName, itemIndex);
                     }
 
                     // add the remain ....
@@ -460,11 +474,11 @@ namespace MetaSprite
         /// <summary>
         /// invoked when frame is end
         /// </summary>
-        public event Action<int> FrameEnd;
+        public event Action<string, int> FrameEnd;
         /// <summary>
         /// invoked when frame is begin
         /// </summary>
-        public event Action<int> FrameBegin;
+        public event Action<string, int> FrameBegin;
 
 
         void ElapsedTimeMoveFrame_LoopMode(int startFrame, float startTime, float dt,
